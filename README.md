@@ -1,2 +1,3 @@
 # Belief-Q
-More experiments involving belief propagations and error corrections
+
+Attempts to implement [Relay-BP](https://arxiv.org/abs/2506.01779) in SpinalHDL.
