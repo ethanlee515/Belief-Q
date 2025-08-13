@@ -10,7 +10,7 @@ import utest.assert
 object HelloTest extends TestSuite {
   def tests = Tests {
     test("hello test") {
-      SimConfig.compile { new BeliefQ }.doSim { dut =>
+      SimConfig.compile { new SurfaceCodeDecoder(15) }.doSim { dut =>
         sleep(1)
         assert(dut.v.toInt == 15)
       }
