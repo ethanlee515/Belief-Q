@@ -9,8 +9,8 @@ case class DataError2D(x: Int, y: Int) extends Variable2D
 case class MeasError2D(x: BigDecimal, y: BigDecimal) extends Variable2D
 case class Factor2D(x: BigDecimal, y: BigDecimal)
 
-case class VariableLabel(t: Int, variable2d: Variable2D)
-case class FactorLabel(t: Int, factor2d: Factor2D)
+case class Variable3D(t: Int, variable2d: Variable2D)
+case class Factor3D(t: Int, factor2d: Factor2D)
 
 // This is actually rotated surface code
 // TODO draw or ref image
@@ -33,12 +33,12 @@ class SurfaceCodeDecoder(distance: Int, num_meas: Int) extends Component {
       (i - half, offset + 2 * j)
     }
   }.toSet
-  val measErrors2D = syndromeLocations2D.map(loc => {
-    val (x, y) = loc
-    MeasError2D(x, y) : Variable2D
-  })
+  val measErrors2D : Set[Variable2D] = syndromeLocations2D.map {
+    case (x, y) => MeasError2D(x, y) : Variable2D
+  }
   val variables2D = dataErrors2D union measErrors2D
   val factors2D = syndromeLocations2D.map(Factor2D.tupled)
+  /** For a rotated-code check at (x, y), return adjacent integer data qubits. */
   def physical_of(f: Factor2D): Set[(Int, Int)] = {
     val Factor2D(x, y) = f
     val half = BigDecimal("0.5")
@@ -51,78 +51,30 @@ class SurfaceCodeDecoder(distance: Int, num_meas: Int) extends Component {
   }
   val dataEdges2D = {
     for(factor <- factors2D;
-        loc <- physical_of(factor)) yield {
-      val (x, y) = loc
-      val v : Variable2D = DataError2D(x, y)
-      (v, factor)
-    }
+        (x, y) <- physical_of(factor)) yield {
+      (DataError2D(x, y), factor)
+    } : (Variable2D, Factor2D)
   }.toSet
   val measEdges2D = {
     for((x, y) <- syndromeLocations2D) yield {
-      val v : Variable2D = MeasError2D(x, y)
-      (v, Factor2D(x, y))
-    }
+      (MeasError2D(x, y), Factor2D(x, y))
+    } : (Variable2D, Factor2D)
   }.toSet
   val edges2D = dataEdges2D union measEdges2D
-
   // product with 3D
-  /*
-  val data_error_labels = {
-    for(ij <- dataLocations_2d;
-        k <- 0 until num_meas) yield {
-      ij match { case (i, j) => DataError(k, i, j) }
+  val variables = {
+    for(variable <- variables2D;
+        t <- 0 until num_meas) yield Variable3D(t, variable)
+  }.toSet
+  val factors = {
+    for(factor <- factors2D;
+        t <- 0 until num_meas) yield Factor3D(t, factor)
+  }.toSet
+  val edges = {
+    for((v2, f2) <- edges2D;
+        t <- 0 until num_meas) yield {
+      (Variable3D(t, v2), Factor3D(t, f2))
     }
   }.toSet
-  val syndromeLocations = {
-    for(ij <- syndromeLocations_2d;
-        k <- 0 until distance) yield {
-      ij match { case (i, j) => (k, i, j) }
-    }
-  }
-  val meas_error_labels = {
-    syndromeLocations_3d.map(MeasurementError.tupled)
-  }
-  val factors = {
-    syndromeLocations_3d.map(FactorLabel.tupled)
-  }
-  val variables = {
-    val data_error_base = data_error_labels.map[VariableLabel](identity)
-    val meas_error_base = meas_error_labels.map[VariableLabel](identity)
-    data_error_base union meas_error_base
-  }
-  */
-
-  /** For a rotated-code check at (x, y), return adjacent integer data qubits. */
-
-/*
-  val dataEdges = {
-    for(((i, j), (x, y)) <- dataEdges_2d;
-        k <- 0 until distance) yield {
-      val variable : VariableLabel = DataError(k, i, j)
-      val factor = FactorLabel(k, x, y)
-      (variable, factor)
-    }
-  }
-
-  val measEdges: Set[(VariableLabel, FactorLabel)] =
-    syndromeLocations_3d.map { case (k, x, y) =>
-      val variable : VariableLabel = MeasurementError(k, x, y)
-      val factor = FactorLabel(k, x, y)
-      (variable, factor)
-    }
-
-  val edges: Set[(VariableLabel, FactorLabel)] = {
-    val measEdges: Set[(VariableLabel, FactorLabel)] =
-      syndromeLocations_3d.map { case (k, x, y) =>
-        (MeasurementError(k, x, y): VariableLabel, FactorLabel(k, x, y))
-      }
-
-    dataEdges union measEdges
-  }
-  */
-
-  // Instantiate the BP core over these labels/edges (no IO yet).
-  // Assumes a definition like:
-  // class BeliefQ[V, F](var_labels: Set[V], factor_labels: Set[F], edges: Set[(V, F)]) extends Component
-  //val bp = new BeliefQ[VariableLabel, FactorLabel](variables, factors, edges)
+  val beliefq = new BeliefQ[Variable3D, Factor3D](variables, factors, edges)
 }

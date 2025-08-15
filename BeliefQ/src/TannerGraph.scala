@@ -12,11 +12,28 @@ class TannerGraph[V, F](
   /* -- IO -- */
   val state = in port State()
   // Instantiating the graph
-  def get_var_degree(v: V) : Int = {
-    return 0
+  def get_neighboring_factors(variable: V) : Set[F] = {
+    edges.collect{case (v, f) if (v == variable) => f}
+  }.toSet
+  def get_neighboring_variables(factor: F) : Set[V] = {
+    edges.collect{case (v, f) if (f == factor) => v}
+  }.toSet
+  def deg_var(variable: V) : Int = {
+    get_neighboring_factors(variable).size
   }
-  def get_factor_degree(f: F) : Int = {
-    return 0
+  def deg_factor(factor: F) : Int = {
+    get_neighboring_variables(factor).size
   }
   // TODO iterate?
+  val variables = {
+    for(v <- var_labels)
+      yield new Variable(deg_var(v))
+  }
+  val factors = {
+    for(f <- factor_labels)
+      yield new Factor(deg_factor(f))
+  }
+
+
+
 }
