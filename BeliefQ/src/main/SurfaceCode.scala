@@ -79,4 +79,8 @@ class SurfaceCodeDecoder(
     }
   }.toSet
   val beliefq = new BeliefQ[Variable3D, Factor3D](params, variables, factors, edges)
+
+  // Checking compilation
+  val test = out port Bool()
+  test := True
 }

@@ -13,7 +13,7 @@ object HelloTest extends TestSuite {
     test("hello test") {
       SimConfig.compile { new SurfaceCodeDecoder(params, 3, 2) }.doSim { dut =>
         sleep(1)
-        println(dut.edges2D)
+        assert(dut.test.toBoolean)
       }
     }
   }
