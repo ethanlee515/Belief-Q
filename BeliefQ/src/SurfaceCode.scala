@@ -14,7 +14,9 @@ case class Factor3D(t: Int, factor2d: Factor2D)
 
 // This is actually rotated surface code
 // TODO draw or ref image
-class SurfaceCodeDecoder(distance: Int, num_meas: Int) extends Component {
+class SurfaceCodeDecoder(
+  params: BeliefQParams,
+  distance: Int, num_meas: Int) extends Component {
   require(distance > 0 && distance % 2 == 1)
   // 2D stuff first
   val dataLocations2D = {
@@ -76,5 +78,5 @@ class SurfaceCodeDecoder(distance: Int, num_meas: Int) extends Component {
       (Variable3D(t, v2), Factor3D(t, f2))
     }
   }.toSet
-  val beliefq = new BeliefQ[Variable3D, Factor3D](variables, factors, edges)
+  val beliefq = new BeliefQ[Variable3D, Factor3D](params, variables, factors, edges)
 }

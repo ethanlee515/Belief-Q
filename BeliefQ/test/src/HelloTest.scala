@@ -9,8 +9,9 @@ import utest.assert
 
 object HelloTest extends TestSuite {
   def tests = Tests {
+    val params = new BeliefQParams
     test("hello test") {
-      SimConfig.compile { new SurfaceCodeDecoder(3, 2) }.doSim { dut =>
+      SimConfig.compile { new SurfaceCodeDecoder(params, 3, 2) }.doSim { dut =>
         sleep(1)
         println(dut.edges2D)
       }

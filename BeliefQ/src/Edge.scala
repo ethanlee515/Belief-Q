@@ -3,20 +3,20 @@ package beliefq
 import spinal.core._
 import spinal.lib._
 
-class Edge extends Component {
-  // TODO parametrize the widths of everything
-  val vToC = Reg(AFix.SQ(8 bits, 8 bits))
-  val cToV = Reg(AFix.SQ(8 bits, 8 bits))
-  val toC = in port Flow(AFix.SQ(8 bits, 8 bits))
-  val toV = in port Flow(AFix.SQ(8 bits, 8 bits))
-  val fromC = out port AFix.SQ(8 bits, 8 bits)
-  val fromV = out port AFix.SQ(8 bits, 8 bits)
-  when(toC.valid) {
-    vToC := toC.payload
+class Edge(params: BeliefQParams) extends Component {
+  import params._
+  val vToC = Reg(message_t)
+  val cToV = Reg(message_t)
+  val fromC = in port Flow(message_t)
+  val fromV = in port Flow(message_t)
+  val toC = out port message_t
+  val toV = out port message_t
+  when(fromC.valid) {
+    cToV := fromC.payload
   }
-  when(toV.valid) {
-    cToV := toV.payload
+  when(fromV.valid) {
+    vToC := fromV.payload
   }
-  fromC := vToC
-  fromV := cToV
+  toC := vToC
+  toV := cToV
 }
