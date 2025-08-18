@@ -9,3 +9,6 @@ RUN wget https://github.com/YosysHQ/oss-cad-suite-build/releases/download/2025-0
 RUN tar xvf oss-cad-suite-*.tgz
 RUN rm oss-cad-suite-*.tgz
 ENV PATH="/opt/oss-cad-suite/bin:${PATH}"
+
+# Stop Verilator from complaining
+ENV LC_ALL=C.UTF-8
