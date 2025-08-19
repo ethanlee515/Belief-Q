@@ -7,17 +7,9 @@ import spinal.lib._
 import utest._
 import utest.assert
 import reference._
-import scala.util.Random
 
 object TestVToC extends TestSuite {
-  val random = new Random()
-
-  def random_message : BigDecimal = {
-    val n = random.nextInt(10)
-    val frac = random.nextInt(256)
-    return n + frac / BigDecimal(256)
-  }
-
+  import Sampler._
   def tests = Tests {
     val params = new BeliefQParams
     test("test v to c message") {
@@ -31,7 +23,7 @@ object TestVToC extends TestSuite {
         sleep(100)
         for(a <- 0 until 10) {
           val prior = random_message
-          val messages = List(random_message, random_message, random_message, random_message, random_message)
+          val messages = List.fill(5)(random_message)
           val res = VToCReference.compute(prior, messages)
           assert(!cd.waitSamplingWhere(1000) { dut.inputs.ready.toBoolean })
           dut.inputs.valid #= true
