@@ -26,11 +26,6 @@ object TestCToV extends TestSuite {
 
     test("CToV hardware vs golden reference") {
       val params = new BeliefQParams()
-      val messages = List.fill(5)(random_message)
-      println(f"messages = $messages")
-      val syndrome = random_boolean()
-      println(f"syndrome = $syndrome ")
-      val results = CToVReference.compute(syndrome, messages)
       SimConfig.compile { new CToV(params, 5) }.doSim { dut =>
         dut.inputs.valid #= false
         val cd = dut.clockDomain
@@ -39,18 +34,23 @@ object TestCToV extends TestSuite {
         sleep(100)
         cd.deassertReset()
         sleep(100)
-        assert(!cd.waitSamplingWhere(1000) { dut.inputs.ready.toBoolean })
-        dut.inputs.valid #= true
-        for(i <- 0 until 5) {
-          dut.inputs.payload.messages(i) #= messages(i)
-        }
-        dut.inputs.payload.syndrome #= syndrome
-        cd.waitSampling()
-        dut.inputs.valid #= false
-        assert(!cd.waitSamplingWhere(1000) { dut.output.valid.toBoolean })
-        for(i <- 0 until 5) {
-          val xi = dut.output.payload(i).toBigDecimal
-          assert(xi == results(i))
+        for(shots <- 0 until 10) {
+          val messages = List.fill(5)(random_message)
+          val syndrome = random_boolean()
+          val results = CToVReference.compute(syndrome, messages)
+          assert(!cd.waitSamplingWhere(1000) { dut.inputs.ready.toBoolean })
+          dut.inputs.valid #= true
+          for(i <- 0 until 5) {
+            dut.inputs.payload.messages(i) #= messages(i)
+          }
+          dut.inputs.payload.syndrome #= syndrome
+          cd.waitSampling()
+          dut.inputs.valid #= false
+          assert(!cd.waitSamplingWhere(1000) { dut.output.valid.toBoolean })
+          for(i <- 0 until 5) {
+            val xi = dut.output.payload(i).toBigDecimal
+            assert(xi == results(i))
+          }
         }
       }
     }
