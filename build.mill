@@ -6,8 +6,10 @@ object BeliefQ extends ScalaModule {
   def ivyDeps = Agg(
     ivy"com.github.spinalhdl::spinalhdl-core:1.12.2",
     ivy"com.github.spinalhdl::spinalhdl-lib:1.12.2",
+    /*
     ivy"org.typelevel::spire:0.18.0",
     ivy"org.typelevel::spire-extras:0.18.0"
+    */
   )
 
   def scalacPluginIvyDeps = Agg(ivy"com.github.spinalhdl::spinalhdl-idsl-plugin:1.12.2")

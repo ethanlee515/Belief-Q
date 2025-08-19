@@ -7,7 +7,6 @@ import spinal.lib._
 import utest._
 import utest.assert
 import reference._
-import spire.math.extras.{FixedPoint, FixedScale}
 import scala.util.Random
 
 object TestVToC extends TestSuite {
