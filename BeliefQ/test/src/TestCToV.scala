@@ -38,7 +38,6 @@ object TestCToV extends TestSuite {
           val messages = List.fill(5)(random_message)
           val syndrome = random_boolean()
           val results = CToVReference.compute(syndrome, messages)
-          assert(!cd.waitSamplingWhere(1000) { dut.inputs.ready.toBoolean })
           dut.inputs.valid #= true
           for(i <- 0 until 5) {
             dut.inputs.payload.messages(i) #= messages(i)
@@ -46,15 +45,15 @@ object TestCToV extends TestSuite {
           dut.inputs.payload.syndrome #= syndrome
           cd.waitSampling()
           dut.inputs.valid #= false
-          assert(!cd.waitSamplingWhere(1000) { dut.output.valid.toBoolean })
+          cd.waitSampling(dut.delays)
+          assert(dut.output.valid.toBoolean)
           for(i <- 0 until 5) {
             val xi = dut.output.payload(i).toBigDecimal
             assert(xi == results(i))
           }
+          cd.waitSampling()
         }
       }
     }
-
   }
-
 }

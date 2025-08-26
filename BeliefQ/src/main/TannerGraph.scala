@@ -42,7 +42,7 @@ class TannerGraph[V, C](
     val variable = variables(v)
     val checks = get_neighboring_checks(v).toSeq
     for(i <- 0 until checks.length) {
-      val edge_label : (V, C) = (v, checks(i))
+      val edge_label = (v, checks(i))
       val edge = edges(edge_label)
       edge.fromV << variable.toC(i)
       variable.fromC(i) := edge.toV

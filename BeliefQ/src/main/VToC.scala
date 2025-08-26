@@ -12,8 +12,9 @@ case class VToCInputs(params: BeliefQParams, deg: Int) extends Bundle {
 class VToC(params: BeliefQParams, deg: Int) extends Component {
   import params._
   /* -- IO -- */
-  val inputs = slave Stream(VToCInputs(params, deg))
+  val inputs = in port Flow(VToCInputs(params, deg))
   val output = out port Flow(Vec.fill(deg)(message_t()))
+  val delays = 2 * deg + 1
   /* logic */
   // Forward + backward sweep trick
   object State extends SpinalEnum {
@@ -22,11 +23,11 @@ class VToC(params: BeliefQParams, deg: Int) extends Component {
   val state = RegInit(State.idle)
   val ctr = Reg(UInt(log2Up(deg) bits)) init(0)
   val accumulator = Reg(message_t)
+  // Potentially unnecessary
   val messages = Vec.fill(deg)(Reg(message_t))
   val result = Vec.fill(deg)(Reg(message_t))
   output.valid := (state === State.done)
   output.payload := result
-  inputs.ready := (state === State.idle)
   switch(state) {
     is(State.idle) {
       when(inputs.valid) {
@@ -35,7 +36,6 @@ class VToC(params: BeliefQParams, deg: Int) extends Component {
         ctr := 0
         for(i <- 0 until deg) {
           messages(i) := inputs.messages(i)
-          // result(i) := BigDecimal(0)
         }
       }
     }

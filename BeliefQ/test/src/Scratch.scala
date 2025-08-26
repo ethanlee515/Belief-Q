@@ -9,6 +9,16 @@ import spinal.lib._
 import utest._
 import utest.assert
 
+class TestComp extends Component {
+  val a = in port Bool()
+  val aa = out port Bool()
+  val b = out port Reg(Bool())
+  val c = out port Reg(Bool())
+  aa := a
+  b := a
+  c := b
+}
+
 object Scratch extends TestSuite {
   def tests = Tests {
     val params = new BeliefQParams()
@@ -19,8 +29,21 @@ object Scratch extends TestSuite {
       }
     }
     test("scratch") {
-      val logPrior = new LogPriorSampler(3, 2)
-      val syndromeSampler = new SyndromeSampler(logPrior.log_priors)
+      SimConfig.compile { new TestComp() }.doSim { dut =>
+        dut.a #= false
+        val cd = dut.clockDomain
+        cd.forkStimulus(10)
+        cd.assertReset()
+        sleep(100)
+        cd.deassertReset()
+        cd.waitSampling()
+        dut.a #= true
+        println(f"a = ${dut.a.toBoolean}; aa = ${dut.aa.toBoolean}, b = ${dut.b.toBoolean}, c = ${dut.c.toBoolean}")
+        cd.waitSampling()
+        println(f"a = ${dut.a.toBoolean}; aa = ${dut.aa.toBoolean}, b = ${dut.b.toBoolean}, c = ${dut.c.toBoolean}")
+        cd.waitSampling()
+        println(f"a = ${dut.a.toBoolean}; aa = ${dut.aa.toBoolean}, b = ${dut.b.toBoolean}, c = ${dut.c.toBoolean}")
+      }
     }
   }
 }

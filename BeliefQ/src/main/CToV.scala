@@ -12,8 +12,9 @@ case class CToVInputs(params: BeliefQParams, deg: Int) extends Bundle {
 class CToV(params: BeliefQParams, deg: Int) extends Component {
   import params._
   /* -- IO -- */
-  val inputs = slave Stream(CToVInputs(params, deg))
+  val inputs = in port Flow(CToVInputs(params, deg))
   val output = out port Flow(Vec.fill(deg)(message_t()))
+  val delays = 2 * deg + 1
   // states
   object State extends SpinalEnum {
     val idle, forward, backward, done = newElement()
@@ -32,7 +33,6 @@ class CToV(params: BeliefQParams, deg: Int) extends Component {
   val min1_idx = Reg(UInt(log2Up(deg) bits))
   val min2_idx = Reg(UInt(log2Up(deg) bits))
   val sign_parity = Reg(Bool())
-  inputs.ready := (state === State.idle)
   switch(state) {
     is(State.idle) {
       when(inputs.valid) {

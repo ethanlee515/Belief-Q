@@ -20,12 +20,11 @@ object TestVToC extends TestSuite {
         cd.assertReset()
         sleep(100)
         cd.deassertReset()
-        sleep(100)
+        cd.waitSampling()
         for(a <- 0 until 10) {
           val prior = random_message
           val messages = List.fill(5)(random_message)
           val res = VToCReference.compute(prior, messages)
-          assert(!cd.waitSamplingWhere(1000) { dut.inputs.ready.toBoolean })
           dut.inputs.valid #= true
           dut.inputs.payload.prior #= prior
           for(i <- 0 until 5) {
@@ -33,11 +32,13 @@ object TestVToC extends TestSuite {
           }
           cd.waitSampling()
           dut.inputs.valid #= false
-          assert(!cd.waitSamplingWhere(1000) { dut.output.valid.toBoolean })
+          cd.waitSampling(dut.delays)
+          assert(dut.output.valid.toBoolean)
           for(i <- 0 until 5) {
             val xi = dut.output.payload(i).toBigDecimal
             assert(xi == res(i))
           }
+          cd.waitSampling()
         }
       }
     }
