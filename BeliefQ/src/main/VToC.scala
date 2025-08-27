@@ -17,21 +17,21 @@ class VToC(params: BeliefQParams, deg: Int) extends Component {
   val delays = 2 * deg + 1
   /* logic */
   // Forward + backward sweep trick
-  object State extends SpinalEnum {
+  object LocalState extends SpinalEnum {
     val idle, forward, backward, done = newElement()
   }
-  val state = RegInit(State.idle)
+  val state = RegInit(LocalState.idle)
   val ctr = Reg(UInt(log2Up(deg) bits)) init(0)
   val accumulator = Reg(message_t)
   // Potentially unnecessary
   val messages = Vec.fill(deg)(Reg(message_t))
   val result = Vec.fill(deg)(Reg(message_t))
-  output.valid := (state === State.done)
+  output.valid := (state === LocalState.done)
   output.payload := result
   switch(state) {
-    is(State.idle) {
+    is(LocalState.idle) {
       when(inputs.valid) {
-        state := State.forward
+        state := LocalState.forward
         accumulator := inputs.prior
         ctr := 0
         for(i <- 0 until deg) {
@@ -39,27 +39,27 @@ class VToC(params: BeliefQParams, deg: Int) extends Component {
         }
       }
     }
-    is(State.forward) {
+    is(LocalState.forward) {
       result(ctr) := accumulator
       when(ctr =/= deg - 1) {
         ctr := ctr + 1
         accumulator := (accumulator + messages(ctr)).truncated
       } otherwise {
-        state := State.backward
+        state := LocalState.backward
         accumulator := BigDecimal(0)
       }
     }
-    is(State.backward) {
+    is(LocalState.backward) {
       result(ctr) := (result(ctr) + accumulator).truncated
       when(ctr =/= 0) {
         ctr := ctr - 1
         accumulator := (accumulator + messages(ctr)).truncated
       } otherwise {
-        state := State.done
+        state := LocalState.done
       }
     }
-    is(State.done) {
-      state := State.idle
+    is(LocalState.done) {
+      state := LocalState.idle
     }
   }
 }

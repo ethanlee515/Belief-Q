@@ -13,6 +13,12 @@ class TannerGraph[V, C](
   import params._
   /* -- IO -- */
   val state = in port State()
+  val start = in port Bool()
+  val in_priors = {
+    for(v <- var_labels) yield {
+      v -> (in port message_t())
+    }
+  }.toMap
   // Instantiating the graph
   def get_neighboring_checks(variable: V) : Set[C] = {
     edge_labels.collect{case (v, f) if (v == variable) => f}
@@ -27,12 +33,18 @@ class TannerGraph[V, C](
     get_neighboring_variables(c).size
   }
   val variables = {
-    for(v <- var_labels)
-      yield (v -> new Variable(params, deg_var(v)))
+    for(v <- var_labels) yield {
+      val variable = new Variable(params, deg_var(v))
+      variable.state := state
+      v -> variable
+    }
   }.toMap
   val checks = {
-    for(f <- chk_labels)
-      yield (f -> new Check(params, deg_check(f)))
+    for(f <- chk_labels) yield {
+      val check = new Check(params, deg_check(f))
+      check.state := state
+      f -> check
+    }
   }.toMap
   val edges = {
     for(e <- edge_labels)    
@@ -55,6 +67,19 @@ class TannerGraph[V, C](
       val edge = edges(vars(i), c)
       edge.fromC << check.toV(i)
       check.fromV(i) := edge.toC
+    }
+  }
+  for(v <- var_labels) {
+    variables(v).prior_in.setIdle()
+  }
+  switch(state) {
+    is(State.idle) {
+      when(start) {
+        for(v <- var_labels) {
+          variables(v).prior_in.valid := True
+          variables(v).prior_in.payload := in_priors(v)
+        }
+      }
     }
   }
 }

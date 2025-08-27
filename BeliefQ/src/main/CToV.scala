@@ -16,15 +16,15 @@ class CToV(params: BeliefQParams, deg: Int) extends Component {
   val output = out port Flow(Vec.fill(deg)(message_t()))
   val delays = 2 * deg + 1
   // states
-  object State extends SpinalEnum {
+  object LocalState extends SpinalEnum {
     val idle, forward, backward, done = newElement()
   }
-  val state = RegInit(State.idle)
+  val state = RegInit(LocalState.idle)
   val ctr = Reg(UInt(log2Up(deg) bits)) init(0)
   val abs_messages = Vec.fill(deg)(Reg(message_t))
   val is_negatives = Vec.fill(deg)(Reg(Bool()))
   val result = Vec.fill(deg)(Reg(message_t))
-  output.valid := (state === State.done)
+  output.valid := (state === LocalState.done)
   output.payload := result
   val min1_valid = Reg(Bool())
   val min2_valid = Reg(Bool())
@@ -34,9 +34,9 @@ class CToV(params: BeliefQParams, deg: Int) extends Component {
   val min2_idx = Reg(UInt(log2Up(deg) bits))
   val sign_parity = Reg(Bool())
   switch(state) {
-    is(State.idle) {
+    is(LocalState.idle) {
       when(inputs.valid) {
-        state := State.forward
+        state := LocalState.forward
         ctr := 0
         for(i <- 0 until deg) {
           val m = inputs.payload.messages(i)
@@ -51,7 +51,7 @@ class CToV(params: BeliefQParams, deg: Int) extends Component {
         min2_valid := False
       }
     }
-    is(State.forward) {
+    is(LocalState.forward) {
       val m = abs_messages(ctr)
       when((!min1_valid) || m < min1) {
         min2 := min1
@@ -68,25 +68,25 @@ class CToV(params: BeliefQParams, deg: Int) extends Component {
       val s = is_negatives(ctr)
       sign_parity := sign_parity ^ s
       when(ctr === deg - 1) {
-        state := State.backward
+        state := LocalState.backward
       } otherwise {
         ctr := ctr + 1
       }
     }
-    is(State.backward) {
+    is(LocalState.backward) {
       val ri_sgn = sign_parity ^ is_negatives(ctr)
       val ri = (ctr === min1_idx) ? min2 | min1
       val minus_ri = message_t()
       minus_ri := (-ri).truncated
       result(ctr) := ri_sgn ? minus_ri | ri
       when(ctr === 0) {
-        state := State.done
+        state := LocalState.done
       } otherwise {
         ctr := ctr - 1
       }
     }
-    is(State.done) {
-      state := State.idle
+    is(LocalState.done) {
+      state := LocalState.idle
     }
   }
 }
