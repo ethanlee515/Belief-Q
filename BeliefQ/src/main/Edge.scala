@@ -21,4 +21,7 @@ class Edge(params: BeliefQParams) extends Component {
   }
   toC := vToC
   toV := cToV
+  when(state === State.loading_inputs) {
+    vToC := BigDecimal(0)
+  }
 }

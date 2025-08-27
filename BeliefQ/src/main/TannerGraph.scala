@@ -19,6 +19,11 @@ class TannerGraph[V, C](
       v -> (in port message_t())
     }
   }.toMap
+  val in_syndromes = {
+    for(c <- chk_labels) yield {
+      c -> (in port Bool())
+    }
+  }.toMap
   // Instantiating the graph
   def get_neighboring_checks(variable: V) : Set[C] = {
     edge_labels.collect{case (v, f) if (v == variable) => f}
@@ -43,6 +48,7 @@ class TannerGraph[V, C](
     for(f <- chk_labels) yield {
       val check = new Check(params, deg_check(f))
       check.state := state
+      check.in_syndrome := in_syndromes(f)
       f -> check
     }
   }.toMap
@@ -82,4 +88,8 @@ class TannerGraph[V, C](
       }
     }
   }
+  // TODO
+  val vToCDelays = 10
+  val cToVDelays = 10
+  val decisionDelays = 10
 }

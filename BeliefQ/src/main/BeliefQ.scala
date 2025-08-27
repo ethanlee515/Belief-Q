@@ -16,7 +16,7 @@ case class BeliefQInputs[V, F](params: BeliefQParams,
     for(f <- factor_labels) yield {
       f -> Bool()
     }
-  }
+  }.toMap
 }
 
 case class BeliefQOutputs[V](var_labels: Set[V]) extends Bundle {
@@ -24,7 +24,7 @@ case class BeliefQOutputs[V](var_labels: Set[V]) extends Bundle {
     for(v <- var_labels) yield {
       v -> Bool()
     }
-  }
+  }.toMap
 }
 
 class BeliefQ[V, F](params: BeliefQParams,
@@ -34,11 +34,15 @@ class BeliefQ[V, F](params: BeliefQParams,
   ) extends Component {
   /* -- IO -- */
   val inputs = in port Flow(BeliefQInputs(params, var_labels, factor_labels))
+  val cached_inputs = inputs.toReg()
   val outputs = out port Flow(BeliefQOutputs(var_labels))
-  val controller = new Controller()
   val graph = new TannerGraph(params, var_labels, factor_labels, edges)
-  graph.state := controller.state
+  val controller = new Controller(graph)
   for(v <- var_labels) {
-    graph.in_priors(v) := inputs.initial_priors(v)
+    graph.in_priors(v) := cached_inputs.initial_priors(v)
   }
+  for(c <- factor_labels) {
+    graph.in_syndromes(c) := cached_inputs.syndromes(c)
+  }
+  graph.state := controller.state
 }
