@@ -12,11 +12,16 @@ class Edge(params: BeliefQParams) extends Component {
   val fromV = in port Flow(message_t)
   val toC = out port message_t
   val toV = out port message_t
-  // TODO gate these by states...
-  when(fromC.valid) {
+  val decision_in = in port Bool()
+  val decision = out port Bool()
+  decision := decision_in
+  when(state === State.loading_inputs) {
+    cToV := BigDecimal(0)
+  }
+  when(state === State.computing_cToV && fromC.valid) {
     cToV := fromC.payload
   }
-  when(fromV.valid) {
+  when(state === State.computing_vToC && fromV.valid) {
     vToC := fromV.payload
   }
   toC := vToC

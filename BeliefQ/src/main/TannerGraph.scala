@@ -3,28 +3,11 @@ package beliefq
 import spinal.core._
 import spinal.lib._
 
-// Set of edges is fine
-// No need for the sparse matrix formalism
-class TannerGraph[V, C](
+class TannerGraphGeometry[V, C](
     params: BeliefQParams,
-    var_labels: Set[V],
-    chk_labels: Set[C],
-    edge_labels: Set[(V, C)]) extends Component {
-  import params._
-  /* -- IO -- */
-  val state = in port State()
-  val start = in port Bool()
-  val in_priors = {
-    for(v <- var_labels) yield {
-      v -> (in port message_t())
-    }
-  }.toMap
-  val in_syndromes = {
-    for(c <- chk_labels) yield {
-      c -> (in port Bool())
-    }
-  }.toMap
-  // Instantiating the graph
+    val var_labels: Set[V],
+    val chk_labels: Set[C],
+    val edge_labels: Set[(V, C)]) {
   def get_neighboring_checks(variable: V) : Set[C] = {
     edge_labels.collect{case (v, f) if (v == variable) => f}
   }.toSet
@@ -37,10 +20,42 @@ class TannerGraph[V, C](
   def deg_check(c: C) : Int = {
     get_neighboring_variables(c).size
   }
+}
+
+// Set of edges is fine
+// No need for the sparse matrix formalism
+class TannerGraph[V, C](
+    params: BeliefQParams,
+    var_labels: Set[V],
+    chk_labels: Set[C],
+    edge_labels: Set[(V, C)]) extends Component {
+  import params._
+  /* -- IO -- */
+  val state = in port State()
+  val start = in port Bool()
+  val priors_in = {
+    for(v <- var_labels) yield {
+      v -> (in port message_t())
+    }
+  }.toMap
+  val in_syndromes = {
+    for(c <- chk_labels) yield {
+      c -> (in port Bool())
+    }
+  }.toMap
+  val corrections = {
+    for(v <- var_labels) yield {
+      v -> (out port Bool())
+    }
+  }.toMap
+  // Instantiating the graph
+  val geometry = new TannerGraphGeometry(params, var_labels, chk_labels, edge_labels)
+  import geometry._
   val variables = {
     for(v <- var_labels) yield {
       val variable = new Variable(params, deg_var(v))
       variable.state := state
+      variable.prior_in := priors_in(v)
       v -> variable
     }
   }.toMap
@@ -53,8 +68,8 @@ class TannerGraph[V, C](
     }
   }.toMap
   val edges = {
-    for(e <- edge_labels)    
-      yield (e -> new Edge(params))
+    for(e <- edge_labels) yield
+      (e -> new Edge(params))
   }.toMap
   for(v <- var_labels) {
     val variable = variables(v)
@@ -63,6 +78,7 @@ class TannerGraph[V, C](
       val edge_label = (v, checks(i))
       val edge = edges(edge_label)
       edge.fromV << variable.toC(i)
+      edge.decision_in := variable.decision
       variable.fromC(i) := edge.toV
     }
   }
@@ -73,23 +89,13 @@ class TannerGraph[V, C](
       val edge = edges(vars(i), c)
       edge.fromC << check.toV(i)
       check.fromV(i) := edge.toC
+      check.neighbor_decisions(i) := edge.decision
     }
   }
   for(v <- var_labels) {
-    variables(v).prior_in.setIdle()
+    corrections(v) := variables(v).decision
   }
-  switch(state) {
-    is(State.idle) {
-      when(start) {
-        for(v <- var_labels) {
-          variables(v).prior_in.valid := True
-          variables(v).prior_in.payload := in_priors(v)
-        }
-      }
-    }
-  }
-  // TODO
-  val vToCDelays = 10
-  val cToVDelays = 10
-  val decisionDelays = 10
+  val vToCDelays = variables.values.maxBy(_.vToCDelays).vToCDelays
+  val cToVDelays = checks.values.maxBy(_.cToVDelays).cToVDelays
+  val decisionDelays = variables.values.maxBy(_.decideDelays).decisionDelays
 }

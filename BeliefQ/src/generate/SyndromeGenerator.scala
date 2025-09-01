@@ -22,14 +22,19 @@ class LogPriorSampler(distance: Int, num_meas: Int) {
   }.toMap
 }
 
-class SyndromeSampler(log_priors: Map[Variable3D, BigDecimal]) {
+class SyndromeSampler[V, F](log_priors: Map[V, BigDecimal], geometry: TannerGraphGeometry[V, F]) {
   val random = new Random()
-  val results = {
+  val errors = {
     for((v, log_prior) <- log_priors) yield {
       val prior = math.pow(2, log_prior.toDouble)
-      println(f"prior = $prior")
       v -> (random.nextDouble() < prior)
     }
   }
-  println(results)
+  val syndromes = {
+    for(f <- geometry.chk_labels) yield {
+      f -> (for(v <- geometry.get_neighboring_variables(f)) yield {
+        errors(v)
+      }).reduce(_ ^ _)
+    }
+  }.toMap
 }

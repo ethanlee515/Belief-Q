@@ -33,16 +33,22 @@ class BeliefQ[V, F](params: BeliefQParams,
     edges: Set[(V, F)],
   ) extends Component {
   /* -- IO -- */
+  import params._
   val inputs = in port Flow(BeliefQInputs(params, var_labels, factor_labels))
   val cached_inputs = inputs.toReg()
   val outputs = out port Flow(BeliefQOutputs(var_labels))
   val graph = new TannerGraph(params, var_labels, factor_labels, edges)
   val controller = new Controller(graph)
+  controller.start := inputs.valid
   for(v <- var_labels) {
-    graph.in_priors(v) := cached_inputs.initial_priors(v)
+    graph.priors_in(v) := cached_inputs.initial_priors(v)
   }
   for(c <- factor_labels) {
     graph.in_syndromes(c) := cached_inputs.syndromes(c)
   }
   graph.state := controller.state
+  outputs.valid := (controller.state === State.result_valid)
+  for(v <- var_labels) {
+    outputs.corrections(v) := graph.corrections(v)
+  }
 }

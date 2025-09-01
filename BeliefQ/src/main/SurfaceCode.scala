@@ -88,13 +88,12 @@ class SurfaceCodeGeometry(distance: Int, num_meas: Int) {
   val edges = dataEdges3D union detectorEdges0 union detectorEdges1
 }
 
+/*
 class SurfaceCodeDecoder(
   params: BeliefQParams,
   distance: Int, num_meas: Int) extends Component {
   require(distance > 0 && distance % 2 == 1)
   val geo = new SurfaceCodeGeometry(distance, num_meas)
   val beliefq = new BeliefQ[Variable3D, Factor](params, geo.variables, geo.factors, geo.edges)
-  // Checking compilation
-  val test = out port Bool()
-  test := True
 }
+*/

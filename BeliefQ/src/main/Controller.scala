@@ -20,8 +20,6 @@ class Controller[V, C](graph: TannerGraph[V, C]) extends Component {
       }
     }
     is(State.loading_inputs) {
-      // TODO init priors
-      // TODO init edges
       state := State.start_computing_vToC
     }
     is(State.start_computing_vToC) {
@@ -41,16 +39,16 @@ class Controller[V, C](graph: TannerGraph[V, C]) extends Component {
     }
     is(State.computing_cToV) {
       when(counter === graph.cToVDelays) {
-        state := State.start_computing_decision
+        state := State.start_decide
       } otherwise {
         counter := counter + 1
       }
     }
-    is(State.start_computing_decision) {
-      state := State.computing_decision
+    is(State.start_decide) {
+      state := State.deciding
       counter := 1
     }
-    is(State.computing_decision) {
+    is(State.deciding) {
       when(counter === graph.decisionDelays) {
         state := State.checking_decision
       } otherwise {
