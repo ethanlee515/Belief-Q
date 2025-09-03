@@ -42,7 +42,9 @@ class VToC(params: BeliefQParams, deg: Int) extends Component {
     is(LocalState.forward) {
       result(ctr) := accumulator
       when(ctr =/= deg - 1) {
-        ctr := ctr + 1
+        if(deg > 1) {
+          ctr := ctr + 1
+        }
         accumulator := (accumulator + messages(ctr)).truncated
       } otherwise {
         state := LocalState.backward
@@ -52,7 +54,9 @@ class VToC(params: BeliefQParams, deg: Int) extends Component {
     is(LocalState.backward) {
       result(ctr) := (result(ctr) + accumulator).truncated
       when(ctr =/= 0) {
-        ctr := ctr - 1
+        if(deg > 1) {
+          ctr := ctr - 1
+        }
         accumulator := (accumulator + messages(ctr)).truncated
       } otherwise {
         state := LocalState.done

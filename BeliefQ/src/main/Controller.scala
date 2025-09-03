@@ -8,6 +8,7 @@ import spinal.lib._
 class Controller[V, C](graph: TannerGraph[V, C]) extends Component {
   val start = in port Bool()
   val state = out port Reg(State()) init(State.idle)
+  val converged = in port Bool()
   // TODO Don't actually need 8 bits here
   // take max over all delays...
   val counter = Reg(UInt(8 bits)) init(0)
@@ -57,7 +58,6 @@ class Controller[V, C](graph: TannerGraph[V, C]) extends Component {
     }
     is(State.checking_decision) {
       // TODO this should be a single-cycle thing
-      val converged = True
       when(converged) {
         // Result is either valid, or need to restart
         state := State.result_valid

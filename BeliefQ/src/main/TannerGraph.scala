@@ -48,6 +48,7 @@ class TannerGraph[V, C](
       v -> (out port Bool())
     }
   }.toMap
+  val converged = out port Bool()
   // Instantiating the graph
   val geometry = new TannerGraphGeometry(params, var_labels, chk_labels, edge_labels)
   import geometry._
@@ -68,8 +69,11 @@ class TannerGraph[V, C](
     }
   }.toMap
   val edges = {
-    for(e <- edge_labels) yield
-      (e -> new Edge(params))
+    for(e <- edge_labels) yield {
+      val edge = new Edge(params)
+      edge.state := state
+      e -> edge
+    }
   }.toMap
   for(v <- var_labels) {
     val variable = variables(v)
@@ -92,6 +96,13 @@ class TannerGraph[V, C](
       check.neighbor_decisions(i) := edge.decision
     }
   }
+  val check_satisfied = {
+    for(c <- chk_labels) yield {
+      val check = checks(c)
+      check.satisfied
+    }
+  }
+  converged := Vec(check_satisfied).andR
   for(v <- var_labels) {
     corrections(v) := variables(v).decision
   }

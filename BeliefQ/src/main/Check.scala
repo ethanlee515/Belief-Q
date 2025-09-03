@@ -11,6 +11,9 @@ class Check(params: BeliefQParams, deg: Int) extends Component {
   val syndrome = Reg(Bool())
   val toV = out port Vec.fill(deg)(Flow(message_t))
   val cToV = new CToV(params, deg)
+  cToV.inputs.valid := (state === State.start_computing_cToV)
+  cToV.inputs.payload.syndrome := syndrome
+  cToV.inputs.messages := fromV
   val cToVDelays = cToV.delays
   val neighbor_decisions = in port Vec.fill(deg)(Bool())
   val satisfied = out port Reg(Bool())
@@ -18,7 +21,8 @@ class Check(params: BeliefQParams, deg: Int) extends Component {
   when(state === State.loading_inputs) {
     syndrome := in_syndrome
   }
-  for(f <- toV) {
-    f.setIdle()
+  for(i <- 0 until deg) {
+    toV(i).valid := cToV.output.valid
+    toV(i).payload := cToV.output.payload(i)
   }
 }

@@ -9,12 +9,12 @@ case class BeliefQInputs[V, F](params: BeliefQParams,
   import params._
   val initial_priors = {
     for(v <- var_labels) yield {
-      v -> message_t()
+      v -> (in port message_t())
     }
   }.toMap
   val syndromes = {
     for(f <- factor_labels) yield {
-      f -> Bool()
+      f -> (in port Bool())
     }
   }.toMap
 }
@@ -22,7 +22,7 @@ case class BeliefQInputs[V, F](params: BeliefQParams,
 case class BeliefQOutputs[V](var_labels: Set[V]) extends Bundle {
   val corrections = {
     for(v <- var_labels) yield {
-      v -> Bool()
+      v -> (out port Bool())
     }
   }.toMap
 }
@@ -47,6 +47,7 @@ class BeliefQ[V, F](params: BeliefQParams,
     graph.in_syndromes(c) := cached_inputs.syndromes(c)
   }
   graph.state := controller.state
+  controller.converged := graph.converged
   outputs.valid := (controller.state === State.result_valid)
   for(v <- var_labels) {
     outputs.corrections(v) := graph.corrections(v)

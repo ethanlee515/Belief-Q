@@ -11,18 +11,22 @@ class Variable(params: BeliefQParams, deg: Int) extends Component {
   val prior_in = in port message_t()
   val state = in port State()
   val decision = out port Bool()
-  // TODO
-  val vToCDelays = 10
-  val decisionDelays = 10
   val prior = Reg(message_t())
+  val vToC = new VToC(params, deg)
+  vToC.inputs.valid := (state === State.start_computing_vToC)
+  vToC.inputs.payload.prior := prior
+  vToC.inputs.messages := fromC
+  val vToCDelays = vToC.delays
   val decide = new Decide(params, deg)
+  val decisionDelays = decide.delays
   decide.messages := fromC
   val decideDelays = decide.delays
   decision := decide.decision
   when(state === State.loading_inputs) {
     prior := prior_in
   }
-  for(f <- toC) {
-    f.setIdle()
+  for(i <- 0 until deg) {
+    toC(i).payload := vToC.output.payload(i)
+    toC(i).valid := vToC.output.valid
   }
 }
