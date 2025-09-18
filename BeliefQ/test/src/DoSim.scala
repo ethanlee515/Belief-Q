@@ -50,14 +50,10 @@ object DoSim extends App {
     println(f"setting input when state = ${dut.controller.state.toEnum}")
     cd.waitSampling()
     dut.inputs.valid #= false
-    for(t <- 0 until 25) {
+    for(t <- 0 until 100) {
       val state = dut.controller.state.toEnum
-      println(f"t = $t, state = ${state}")
-      if(state == State.checking_decision) {
-        println(f"converged = ${dut.graph.converged.toBoolean}")
-        for(v <- geo.variables) {
-          println(f"decision at ${v} = ${dut.graph.variables(v).decision.toBoolean}")
-        }
+      if(state != State.result_valid) {
+        println(f"t = $t, state = ${state}")
       }
       if(state == State.start_computing_cToV) {
         for(e <- geo.edges) {
@@ -76,6 +72,14 @@ object DoSim extends App {
           println(f"c to v at ${e} = ${dut.graph.edges(e).toV.toBigDecimal}")
         }
       }
+      /*
+      if(state == State.checking_decision) {
+        println(f"converged = ${dut.graph.converged.toBoolean}")
+        for(v <- geo.variables) {
+          println(f"decision at ${v} = ${dut.graph.variables(v).decision.toBoolean}")
+        }
+      }
+      */
       if(state == State.checking_decision) {
         for(v <- geo.variables) {
           println(f"decision(${v}) = ${dut.graph.variables(v).decision.toBoolean}")

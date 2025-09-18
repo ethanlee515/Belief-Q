@@ -34,12 +34,10 @@ class SurfaceCodeGeometry(distance: Int, num_meas: Int) {
       (i - half, offset + 2 * j)
     }
   }.toSet
-  /*
   val measErrors2D : Set[Variable2D] = syndromeLocations2D.map {
     case (x, y) => MeasError2D(x, y) : Variable2D
   }
-  */
-  val variables2D = dataErrors2D /* union measErrors2D */
+  val variables2D = dataErrors2D union measErrors2D
   /** For a rotated-code check at (x, y), return adjacent integer data qubits. */
   def physical_of(x: BigDecimal, y: BigDecimal): Set[(Int, Int)] = {
     val half = BigDecimal("0.5")
@@ -71,7 +69,6 @@ class SurfaceCodeGeometry(distance: Int, num_meas: Int) {
       (Variable3D(t, v), Factor(t, x, y))
     }
   }.toSet
-  /*
   val detectorEdges0 = {
     for(t <- 0 until num_meas;
         (x, y) <- syndromeLocations2D) yield {
@@ -88,8 +85,7 @@ class SurfaceCodeGeometry(distance: Int, num_meas: Int) {
       (v, f)
     }
   }.toSet
-  */
-  val edges = dataEdges3D /* union detectorEdges0 union detectorEdges1 */
+  val edges = dataEdges3D union detectorEdges0 union detectorEdges1
 }
 
 /*
