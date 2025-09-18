@@ -10,8 +10,8 @@ import utest.assert
 object TestBeliefQ extends TestSuite {
   def tests = Tests {
     val params = new BeliefQParams()
-    test("hello test") {
-      val d = 3
+    test("eventual convergence") {
+      val d = 5
       val num_meas = 1
       val logPriorSampler = new LogPriorSampler(d, num_meas)
       val log_prior = logPriorSampler.results

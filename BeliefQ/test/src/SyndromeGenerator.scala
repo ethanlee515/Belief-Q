@@ -12,11 +12,11 @@ class LogPriorSampler(distance: Int, num_meas: Int) {
       v match {
         case Variable3D(t, DataError2D(x, y)) => {
           //v -> (numerator / BigDecimal(32) - 4)
-          v -> (numerator / BigDecimal(32) - 7)
+          v -> (4 - numerator / BigDecimal(32))
         }
         case Variable3D(t, MeasError2D(x, y)) => {
           //v -> (numerator / BigDecimal(32) - 5)
-          v -> (numerator / BigDecimal(32) - 8)
+          v -> (5 - numerator / BigDecimal(32))
         }
       }
     }
@@ -27,7 +27,7 @@ class SyndromeSampler[V, F](log_priors: Map[V, BigDecimal], geometry: TannerGrap
   val random = new Random()
   val errors = {
     for((v, log_prior) <- log_priors) yield {
-      val prior = math.pow(2, log_prior.toDouble)
+      val prior = math.pow(2, -log_prior.toDouble)
       v -> (random.nextDouble() < prior)
     }
   }

@@ -42,7 +42,7 @@ class Decide(params: BeliefQParams, num_messages: Int) extends Component {
   val decision = out port Reg(Bool())
   val sumMessages = new SumOfMessages(params, num_messages)
   sumMessages.messages := messages
-  decision := (sumMessages.result.isPositive)
+  decision := (sumMessages.result.isNegative)
   val delays = sumMessages.delays + 1
 }
 
