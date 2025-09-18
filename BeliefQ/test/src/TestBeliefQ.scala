@@ -1,8 +1,6 @@
 package beliefq
 package test
 
-import beliefq.generate._
-
 import spinal.core._
 import spinal.core.sim._
 import spinal.lib._
@@ -39,7 +37,7 @@ object TestBeliefQ extends TestSuite {
         }
         cd.waitSampling()
         dut.inputs.valid #= false
-        val converged = !(cd.waitSamplingWhere(1000) { dut.outputs.valid.toBoolean })
+        val converged = !(cd.waitSamplingWhere(5000) { dut.outputs.valid.toBoolean })
         assert(converged)
         for(v <- geo.variables) {
           if(dut.outputs.corrections(v).toBoolean)

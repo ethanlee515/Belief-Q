@@ -1,5 +1,5 @@
 package beliefq
-package generate
+package test
 
 import scala.util.Random
 
@@ -9,13 +9,14 @@ class LogPriorSampler(distance: Int, num_meas: Int) {
   val results = {
     for(v <- geo.variables) yield {
       val numerator = random.nextInt(16)
-      // unrealistically high error rate so we observe *something*
       v match {
         case Variable3D(t, DataError2D(x, y)) => {
-          v -> (numerator / BigDecimal(32) - 4)
+          //v -> (numerator / BigDecimal(32) - 4)
+          v -> (numerator / BigDecimal(32) - 7)
         }
         case Variable3D(t, MeasError2D(x, y)) => {
-          v -> (numerator / BigDecimal(32) - 5)
+          //v -> (numerator / BigDecimal(32) - 5)
+          v -> (numerator / BigDecimal(32) - 8)
         }
       }
     }

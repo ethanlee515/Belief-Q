@@ -35,16 +35,35 @@ class BeliefQ[V, F](params: BeliefQParams,
   /* -- IO -- */
   import params._
   val inputs = in port Flow(BeliefQInputs(params, var_labels, factor_labels))
-  val cached_inputs = inputs.toReg()
+  val cached_initial_priors = {
+    for(v <- var_labels) yield {
+      v -> Reg(message_t())
+    }
+  }.toMap
+  val cached_syndromes = {
+    for(f <- factor_labels) yield {
+      f -> Reg(Bool())
+    }
+  }.toMap
+  when(inputs.valid) {
+    for(v <- var_labels) {
+      cached_initial_priors(v) := inputs.initial_priors(v)
+    }
+    for(f <- factor_labels) yield {
+      cached_syndromes(f) := inputs.syndromes(f)
+    }
+  }
   val outputs = out port Flow(BeliefQOutputs(var_labels))
   val graph = new TannerGraph(params, var_labels, factor_labels, edges)
   val controller = new Controller(graph)
-  controller.start := inputs.valid
+  val delayed_inputs_valid = Reg(Bool()) init(False)
+  delayed_inputs_valid := inputs.valid
+  controller.start := delayed_inputs_valid
   for(v <- var_labels) {
-    graph.priors_in(v) := cached_inputs.initial_priors(v)
+    graph.priors_in(v) := cached_initial_priors(v)
   }
   for(c <- factor_labels) {
-    graph.in_syndromes(c) := cached_inputs.syndromes(c)
+    graph.in_syndromes(c) := cached_syndromes(c)
   }
   graph.state := controller.state
   controller.converged := graph.converged
