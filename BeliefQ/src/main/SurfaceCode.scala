@@ -88,6 +88,14 @@ class SurfaceCodeGeometry(distance: Int, num_meas: Int) {
   val edges = dataEdges3D union detectorEdges0 union detectorEdges1
 }
 
+object CompileVerilog extends App {
+  val d = 3
+  val num_meas = 3
+  val geo = new SurfaceCodeGeometry(d, num_meas)
+  val params = new BeliefQParams()
+  SpinalVerilog(new BeliefQ(params, geo.variables, geo.factors, geo.edges))
+}
+
 /*
 class SurfaceCodeDecoder(
   params: BeliefQParams,
