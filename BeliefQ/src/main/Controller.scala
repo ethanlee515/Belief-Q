@@ -66,5 +66,8 @@ class Controller[V, C](graph: TannerGraph[V, C]) extends Component {
         state := State.start_computing_vToC
       }
     }
+    is(State.result_valid) {
+      state := State.idle
+    }
   }
 }

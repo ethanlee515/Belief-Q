@@ -34,7 +34,8 @@ class BeliefQ[V, F](params: BeliefQParams,
   ) extends Component {
   /* -- IO -- */
   import params._
-  val inputs = in port Flow(BeliefQInputs(params, var_labels, factor_labels))
+  val inputs = in port Stream(BeliefQInputs(params, var_labels, factor_labels))
+  inputs.asSlave()
   val cached_initial_priors = {
     for(v <- var_labels) yield {
       v -> Reg(message_t())
@@ -45,7 +46,7 @@ class BeliefQ[V, F](params: BeliefQParams,
       f -> Reg(Bool())
     }
   }.toMap
-  when(inputs.valid) {
+  when(inputs.fire) {
     for(v <- var_labels) {
       cached_initial_priors(v) := inputs.initial_priors(v)
     }
@@ -56,6 +57,7 @@ class BeliefQ[V, F](params: BeliefQParams,
   val outputs = out port Flow(BeliefQOutputs(var_labels))
   val graph = new TannerGraph(params, var_labels, factor_labels, edges)
   val controller = new Controller(graph)
+  inputs.ready := (controller.state === State.idle)
   val delayed_inputs_valid = Reg(Bool()) init(False)
   delayed_inputs_valid := inputs.valid
   controller.start := delayed_inputs_valid

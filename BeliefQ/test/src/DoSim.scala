@@ -14,7 +14,7 @@ object DoSim extends App {
   val logPriorSampler = new LogPriorSampler(d, num_meas)
   val log_prior = logPriorSampler.results
   val geo = logPriorSampler.geo
-  val tanner_geo = new TannerGraphGeometry(params, geo.variables, geo.factors, geo.edges)
+  val tanner_geo = new TannerGraphGeometry(/*params,*/ geo.variables, geo.factors, geo.edges)
   val syndromeSampler = new SyndromeSampler(log_prior, tanner_geo)
   val syndromes = syndromeSampler.syndromes
   println(f"generated syndromes = ${syndromes}")

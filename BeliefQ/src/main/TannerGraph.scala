@@ -4,7 +4,7 @@ import spinal.core._
 import spinal.lib._
 
 class TannerGraphGeometry[V, C](
-    params: BeliefQParams,
+    //params: BeliefQParams,
     val var_labels: Set[V],
     val chk_labels: Set[C],
     val edge_labels: Set[(V, C)]) {
@@ -50,7 +50,7 @@ class TannerGraph[V, C](
   }.toMap
   val converged = out port Bool()
   // Instantiating the graph
-  val geometry = new TannerGraphGeometry(params, var_labels, chk_labels, edge_labels)
+  val geometry = new TannerGraphGeometry(/*params, */ var_labels, chk_labels, edge_labels)
   import geometry._
   val variables = {
     for(v <- var_labels) yield {

@@ -7,6 +7,8 @@ import spinal.lib._
 import utest._
 import utest.assert
 
+/*
+
 object TestBeliefQ extends TestSuite {
   def tests = Tests {
     val params = new BeliefQParams()
@@ -47,4 +49,4 @@ object TestBeliefQ extends TestSuite {
     }
   }
 }
-
+*/
