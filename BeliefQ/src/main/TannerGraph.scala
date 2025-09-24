@@ -4,7 +4,6 @@ import spinal.core._
 import spinal.lib._
 
 class TannerGraphGeometry[V, C](
-    //params: BeliefQParams,
     val var_labels: Set[V],
     val chk_labels: Set[C],
     val edge_labels: Set[(V, C)]) {

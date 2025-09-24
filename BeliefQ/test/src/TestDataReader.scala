@@ -13,17 +13,14 @@ object TestDataReader extends App {
   val syndromes_batch = Json.parse(syndromes_serialized).as[Seq[Seq[Boolean]]]
   val ehat_bp_serialized = Source.fromFile("./test-data/ehat_bp.json").mkString
   val ehat_bp = Json.parse(ehat_bp_serialized).as[Seq[Seq[Boolean]]]
-  
   val num_checks = chkmat.length
   val num_vars = chkmat(0).length
   val all_grid_indices = {
-    for(i <- 0 until num_checks;
-        j <- 0 until num_vars) yield (i, j)
+    for(i <- 0 until num_vars;
+        j <- 0 until num_checks) yield (i, j)
   }.toSet
-  val edges = all_grid_indices.filter{case (i, j) => chkmat(i)(j)}
-
+  val edges = all_grid_indices.filter{case (i, j) => chkmat(j)(i)}
   val geo = new TannerGraphGeometry((0 until num_vars).toSet, (0 until num_checks).toSet, edges)
-
   def is_converged(i : Int) : Boolean = {
     val syndromes = syndromes_batch(i)
     val corrections = ehat_bp(i)
