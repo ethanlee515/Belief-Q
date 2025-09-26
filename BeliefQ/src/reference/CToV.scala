@@ -1,7 +1,7 @@
 package beliefq
 package reference
 
-object CToVReference {
+object CToV {
   def compute(syndrome: Boolean, vToCs: Seq[BigDecimal]) : Seq[BigDecimal] = {
     require(vToCs.length >= 2)
     Seq.tabulate(vToCs.length) {i =>

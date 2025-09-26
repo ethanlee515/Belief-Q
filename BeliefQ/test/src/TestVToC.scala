@@ -24,7 +24,7 @@ object TestVToC extends TestSuite {
         for(a <- 0 until 10) {
           val prior = random_message
           val messages = List.fill(5)(random_message)
-          val res = VToCReference.compute(prior, messages)
+          val res = reference.VToC.compute(prior, messages)
           dut.inputs.valid #= true
           dut.inputs.payload.prior #= prior
           for(i <- 0 until 5) {

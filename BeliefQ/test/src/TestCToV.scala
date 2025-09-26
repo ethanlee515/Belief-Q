@@ -20,7 +20,7 @@ object TestCToV extends TestSuite {
         BigDecimal("-4.4"),
         BigDecimal("0.55"),
         BigDecimal("-6.6"))
-      val results = CToVReference.compute(true, inputs)
+      val results = reference.CToV.compute(true, inputs)
 //      println(f"VToC results = $results")
     }
 
@@ -37,7 +37,7 @@ object TestCToV extends TestSuite {
         for(shots <- 0 until 10) {
           val messages = List.fill(5)(random_message)
           val syndrome = random_boolean()
-          val results = CToVReference.compute(syndrome, messages)
+          val results = reference.CToV.compute(syndrome, messages)
           dut.inputs.valid #= true
           for(i <- 0 until 5) {
             dut.inputs.payload.messages(i) #= messages(i)
