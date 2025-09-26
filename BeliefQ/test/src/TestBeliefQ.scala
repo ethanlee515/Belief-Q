@@ -7,22 +7,12 @@ import spinal.lib._
 import utest._
 import utest.assert
 
-/*
-
 object TestBeliefQ extends TestSuite {
   def tests = Tests {
     val params = new BeliefQParams()
-    test("eventual convergence") {
-      val d = 5
-      val num_meas = 1
-      val logPriorSampler = new LogPriorSampler(d, num_meas)
-      val log_prior = logPriorSampler.results
-      val geo = logPriorSampler.geo
-      val tanner_geo = new TannerGraphGeometry(params, geo.variables, geo.factors, geo.edges)
-      val syndromeSampler = new SyndromeSampler(log_prior, tanner_geo)
-      val syndromes = syndromeSampler.syndromes
-      println(f"generated syndromes = ${syndromes}")
-      SimConfig.compile { new BeliefQ(params, geo.variables, geo.factors, geo.edges) }.doSim { dut =>
+    test("vanilla BP matches reference") {
+      val geo = SimData.geo
+      SimConfig.compile { new BeliefQ(params, geo.var_labels, geo.chk_labels, geo.edge_labels) }.doSim { dut =>
         dut.inputs.valid #= false
         val cd = dut.clockDomain
         cd.forkStimulus(10)
@@ -30,23 +20,45 @@ object TestBeliefQ extends TestSuite {
         sleep(100)
         cd.deassertReset()
         sleep(100)
-        dut.inputs.valid #= true
-        for(v <- geo.variables) {
-          dut.inputs.initial_priors(v) #= log_prior(v)
+        // why not
+        for(v <- geo.var_labels) {
+          dut.inputs.initial_priors(v) #= SimData.log_priors(v)
         }
-        for(c <- geo.factors) {
-          dut.inputs.syndromes(c) #= syndromes(c)
-        }
-        cd.waitSampling()
-        dut.inputs.valid #= false
-        val converged = !(cd.waitSamplingWhere(5000) { dut.outputs.valid.toBoolean })
-        assert(converged)
+        for(i <- 2 until 1000) {
+          if(SimData.is_converged(i)) {
+            val syndromes = SimData.syndromes_batch(i)
+            println(f"doing iteration i = ${i} with syndromes ${syndromes}")
+            println(f"expected result = ${SimData.ehat_bp(i)}")
+            val is_ready = !(cd.waitSamplingWhere(5000) { dut.inputs.ready.toBoolean })
+            assert(is_ready)
+            dut.inputs.valid #= true
+            for(c <- geo.chk_labels) {
+              dut.inputs.syndromes(c) #= syndromes(c)
+            }
+            cd.waitSampling()
+            dut.inputs.valid #= false
+            val converged = !(cd.waitSamplingWhere(5000) { dut.outputs.valid.toBoolean })
+            assert(converged)
+            /*
         for(v <- geo.variables) {
           if(dut.outputs.corrections(v).toBoolean)
           println(f"need to correct: ${v}")
+        }
+      val syndromes = syndromeSampler.syndromes
+        */
+          }
         }
       }
     }
   }
 }
-*/
+
+/*
+  var converge_count = 0
+  var diverge_count = 0
+  for(i <- 0 until 1000) {
+      converge_count += 1
+    } else {
+      diverge_count += 1
+    }
+    */
