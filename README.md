@@ -19,3 +19,6 @@ It is also possible to build this project without Docker, using the following de
 We currently only consider a subset of [Relay-BP](https://arxiv.org/abs/2506.01779) features.
 We will hopefully have something more exciting later.
 
+## TODO
+
+* "Checks" and "Factors" are used in an interchangable and inconsistent way. Stick to one or the other.
