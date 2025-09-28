@@ -15,7 +15,7 @@ class VanillaBP[V, F](
     syndromes: Map[F, Boolean],
     log_priors: Map[V, BigDecimal]) {
   val geo = new TannerGraphGeometry(var_labels, factor_labels, edges)
-  var state = State.computeVToC
+  var state = State.computeCToV
 
   var vToCs = {
     for(e <- edges) yield {
@@ -26,26 +26,23 @@ class VanillaBP[V, F](
 
   var cToVs = {
     for(e <- edges) yield {
-      e -> (0 : BigDecimal)
+      e -> BigDecimal(0)
     }
-  }.to(mutable.Map)
-
-  var corrections = {
-    for(v <- var_labels) yield { v -> false }
   }.to(mutable.Map)
 
   val decisions = {
-    for(v <- geo.var_labels) yield { v -> false}
+    for(v <- geo.var_labels) yield { v -> false }
   }.to(mutable.Map)
 
-  def doBP(max_iters: Int) : Map[V, Boolean] = {
+  def doBP(max_iters: Int) : Option[Map[V, Boolean]] = {
     for(i <- 0 until max_iters) {
       next()
       if(isDone()) {
-        return corrections.toMap
+        return Some(decisions.toMap)
       }
     }
-    throw new Exception("did not converge")
+//    println(f"syndromes = $syndromes")
+    return None
   }
 
   def next() = {
@@ -58,10 +55,13 @@ class VanillaBP[V, F](
       }
       case State.computeDecisions => {
         updateDecisions()
+        state = State.checkConvergence
+      }
+      case State.checkConvergence => {
         if(isConverged()) {
-          state = State.computeCToV
-        } else {
           state = State.done
+        } else {
+          state = State.computeVToC
         }
       }
       case State.done => {
@@ -107,15 +107,15 @@ class VanillaBP[V, F](
           cToVs(v, c)
         }
       }
-      val sum_messages = messages.reduce(_ + _)
+      val sum_messages = log_priors(v) + messages.reduce(_ + _)
       decisions(v) = (sum_messages < 0)
     }
   }
 
   def isConverged() : Boolean = {
     for(c <- geo.chk_labels) {
-      val neighbors = geo.get_neighboring_variables(c)
-      val neighbor_decisions = for(v <- neighbors) yield decisions(v)
+      val neighbors = geo.get_neighboring_variables(c).toSeq
+      val neighbor_decisions = neighbors.map(decisions(_))
       val supposed_syndrome = neighbor_decisions.reduce(_ ^ _)
       if(supposed_syndrome != syndromes(c)) {
         return false

@@ -20,7 +20,7 @@ object DoSim extends App {
   println(f"generated syndromes = ${syndromes}")
   println(f"generated priors = ${log_prior}")
   SimConfig.compile {
-    val dut = new BeliefQ(params, geo.variables, geo.factors, geo.edges)
+    val dut = new VanillaBP(params, geo.variables, geo.factors, geo.edges)
     dut.controller.state.simPublic()
     dut.graph.converged.simPublic()
     for(v <- geo.variables) {

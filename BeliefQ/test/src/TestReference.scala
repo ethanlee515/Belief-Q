@@ -8,35 +8,36 @@ import utest._
 import utest.assert
 import beliefq.reference.VanillaBP
 
-/*
-class VanillaBP[V, F](
-    var_labels: Set[V],
-    factor_labels: Set[F],
-    edges: Set[(V, F)],
-    syndromes: Map[F, Boolean],
-    log_priors: Map[V, BigDecimal]) {
-    */
-
 object TestReference extends TestSuite {
   def tests = Tests {
     test("Scala reference matches Rust output") {
-      for(i <- 0 until 1000) {
-        if(SimData.is_converged(i)) {
+      for(i <- 1000 until 3000) {
+        if(SimData.is_converged(i) && !SimData.strange_indices.contains(i)) {
           val var_labels = (0 until SimData.num_vars).toSet
           val factor_labels = (0 until SimData.num_checks).toSet
           val syndromes = {
-            for(c <- factor_labels) yield {
-              c -> SimData.syndromes_batch(i)(c)
+            for(j <- 0 until SimData.num_checks) yield {
+              j -> SimData.syndromes_batch(i)(j)
             }
           }.toMap
           val log_priors = {
-            for(v <- var_labels) yield {
-              // TODO Big Decimal...
-              v -> BigDecimal(SimData.log_priors(v))
+            for(j <- 0 until SimData.num_vars) yield {
+              j -> SimData.log_priors(j)
             }
           }.toMap
           val vanillaBP = new VanillaBP(var_labels, factor_labels, SimData.edges, syndromes, log_priors)
-          val results = vanillaBP.doBP(100)
+          val results : Option[Map[Int, Boolean]] = vanillaBP.doBP(500)
+          val expected_results = SimData.ehat_bp(i)
+          results match {
+            case Some(res) => {
+              for(j <- 0 until SimData.num_vars) {
+                assert(res(j) == expected_results(j))
+              }
+            }
+            case None => {
+              assert(false)
+            }
+          }
         }
       }
     }

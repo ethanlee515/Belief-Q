@@ -15,6 +15,7 @@ class RepetitionCodeGeometry(n: Int) {
   val edge_labels = edge1 union edge2
 }
 
+/*
 object SimRepetitionCode extends App {
   val params = new BeliefQParams()
   val geo = new RepetitionCodeGeometry(5)
@@ -84,3 +85,5 @@ object SimRepetitionCode extends App {
     */
   }
 }
+
+*/

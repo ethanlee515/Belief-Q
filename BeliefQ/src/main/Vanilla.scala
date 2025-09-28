@@ -27,7 +27,7 @@ case class BeliefQOutputs[V](var_labels: Set[V]) extends Bundle {
   }.toMap
 }
 
-class BeliefQ[V, F](params: BeliefQParams,
+class VanillaBP[V, F](params: BeliefQParams,
     var_labels: Set[V],
     factor_labels: Set[F],
     edges: Set[(V, F)],

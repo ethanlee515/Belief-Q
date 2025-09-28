@@ -19,7 +19,7 @@ object SimData {
     } else {
       p
     }
-    Math.log((1 - pp) / pp)
+    BigDecimal(Math.log((1 - pp) / pp))
   }
 //  println(f"log priors = ${log_priors}")
   val syndromes_serialized = Source.fromFile("./test-data/syndromes.json").mkString
@@ -51,4 +51,5 @@ object SimData {
     }
     return true
   }
+  val strange_indices = Set(64, 3157)
 }

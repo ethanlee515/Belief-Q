@@ -17,7 +17,9 @@ object CToV {
           running_sign *= (if (mj < 0) -1 else 1)
         }
       }
-      running_sign * running_min
+      val result = running_sign * running_min
+//      if(vToCs(i) == 0) 0 else result
+      result
     }
   }
 }
