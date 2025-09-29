@@ -8,6 +8,6 @@ object State extends SpinalEnum {
     start_computing_vToC, computing_vToC,
     start_computing_cToV, computing_cToV,
     start_decide, deciding,
-    start_checking_decision, checking_decision,
+    /* start_checking_decision, */ checking_decision,
     result_valid = newElement()
 }

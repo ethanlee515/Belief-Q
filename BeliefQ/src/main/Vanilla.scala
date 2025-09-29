@@ -34,8 +34,7 @@ class VanillaBP[V, F](params: BeliefQParams,
   ) extends Component {
   /* -- IO -- */
   import params._
-  val inputs = in port Stream(BeliefQInputs(params, var_labels, factor_labels))
-  inputs.asSlave()
+  val inputs = slave Stream(BeliefQInputs(params, var_labels, factor_labels))
   val cached_initial_priors = {
     for(v <- var_labels) yield {
       v -> Reg(message_t())
@@ -48,10 +47,10 @@ class VanillaBP[V, F](params: BeliefQParams,
   }.toMap
   when(inputs.fire) {
     for(v <- var_labels) {
-      cached_initial_priors(v) := inputs.initial_priors(v)
+      cached_initial_priors(v) := inputs.payload.initial_priors(v)
     }
     for(f <- factor_labels) yield {
-      cached_syndromes(f) := inputs.syndromes(f)
+      cached_syndromes(f) := inputs.payload.syndromes(f)
     }
   }
   val outputs = out port Flow(BeliefQOutputs(var_labels))

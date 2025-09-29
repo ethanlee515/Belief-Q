@@ -19,9 +19,10 @@ object SimData {
     } else {
       p
     }
-    BigDecimal(Math.log((1 - pp) / pp))
+    val res = Math.log((1 - pp) / pp)
+    // round to the nearest 1/8ths
+    BigDecimal((8 * res).toInt) * BigDecimal("0.125")
   }
-//  println(f"log priors = ${log_priors}")
   val syndromes_serialized = Source.fromFile("./test-data/syndromes.json").mkString
   val syndromes_batch = Json.parse(syndromes_serialized).as[Seq[Seq[Boolean]]]
   val ehat_bp_serialized = Source.fromFile("./test-data/ehat_bp.json").mkString

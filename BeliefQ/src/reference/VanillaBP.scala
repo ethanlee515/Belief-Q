@@ -36,16 +36,15 @@ class VanillaBP[V, F](
 
   def doBP(max_iters: Int) : Option[Map[V, Boolean]] = {
     for(i <- 0 until max_iters) {
-      next()
+      step()
       if(isDone()) {
         return Some(decisions.toMap)
       }
     }
-//    println(f"syndromes = $syndromes")
     return None
   }
 
-  def next() = {
+  def step() = {
     state match {
       case State.computeVToC => {
         doVToC()

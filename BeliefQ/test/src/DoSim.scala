@@ -31,6 +31,7 @@ object DoSim extends App {
       dut.graph.edges(e).toC.simPublic()
       dut.graph.edges(e).toV.simPublic()
     }
+    dut.delayed_inputs_valid.simPublic()
     dut
   }.doSim { dut =>
     dut.inputs.valid #= false
@@ -53,7 +54,7 @@ object DoSim extends App {
     for(t <- 0 until 100) {
       val state = dut.controller.state.toEnum
       if(state != State.result_valid) {
-        println(f"t = $t, state = ${state}")
+        println(f"t = $t, state = ${state}, delayed valid = ${dut.delayed_inputs_valid.toBoolean}")
       }
       if(state == State.start_computing_cToV) {
         for(e <- geo.edges) {

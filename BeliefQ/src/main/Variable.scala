@@ -17,9 +17,12 @@ class Variable(params: BeliefQParams, deg: Int) extends Component {
   vToC.inputs.payload.prior := prior
   vToC.inputs.messages := fromC
   val vToCDelays = vToC.delays
-  val decide = new Decide(params, deg)
+  val decide = new Decide(params, deg + 1)
   val decisionDelays = decide.delays
-  decide.messages := fromC
+  for(i <- 0 until deg) {
+    decide.messages(i) := fromC(i)
+  }
+  decide.messages(deg) := prior
   val decideDelays = decide.delays
   decision := decide.decision
   when(state === State.loading_inputs) {
