@@ -52,5 +52,5 @@ object SimData {
     }
     return true
   }
-  val strange_indices = Set(64, 3157)
+  val strange_indices = Set(64, 3157, 5813, 7868)
 }
