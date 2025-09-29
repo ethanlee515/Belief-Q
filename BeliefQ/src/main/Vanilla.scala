@@ -4,7 +4,7 @@ import spinal.lib._
 
 case class BeliefQInputs[V, F](params: BeliefQParams,
   var_labels: Set[V],
-  factor_labels: Set[F],
+  chk_labels: Set[F],
 ) extends Bundle {
   import params._
   val initial_priors = {
@@ -13,7 +13,7 @@ case class BeliefQInputs[V, F](params: BeliefQParams,
     }
   }.toMap
   val syndromes = {
-    for(f <- factor_labels) yield {
+    for(f <- chk_labels) yield {
       f -> (in port Bool())
     }
   }.toMap
@@ -29,19 +29,19 @@ case class BeliefQOutputs[V](var_labels: Set[V]) extends Bundle {
 
 class VanillaBP[V, F](params: BeliefQParams,
     var_labels: Set[V],
-    factor_labels: Set[F],
+    chk_labels: Set[F],
     edges: Set[(V, F)],
   ) extends Component {
   /* -- IO -- */
   import params._
-  val inputs = slave Stream(BeliefQInputs(params, var_labels, factor_labels))
+  val inputs = slave Stream(BeliefQInputs(params, var_labels, chk_labels))
   val cached_initial_priors = {
     for(v <- var_labels) yield {
       v -> Reg(message_t())
     }
   }.toMap
   val cached_syndromes = {
-    for(f <- factor_labels) yield {
+    for(f <- chk_labels) yield {
       f -> Reg(Bool())
     }
   }.toMap
@@ -49,12 +49,12 @@ class VanillaBP[V, F](params: BeliefQParams,
     for(v <- var_labels) {
       cached_initial_priors(v) := inputs.payload.initial_priors(v)
     }
-    for(f <- factor_labels) yield {
+    for(f <- chk_labels) yield {
       cached_syndromes(f) := inputs.payload.syndromes(f)
     }
   }
   val outputs = out port Flow(BeliefQOutputs(var_labels))
-  val graph = new TannerGraph(params, var_labels, factor_labels, edges)
+  val graph = new TannerGraph(params, var_labels, chk_labels, edges)
   val controller = new Controller(graph)
   inputs.ready := (controller.state === State.idle)
   val delayed_inputs_valid = Reg(Bool()) init(False)
@@ -63,7 +63,7 @@ class VanillaBP[V, F](params: BeliefQParams,
   for(v <- var_labels) {
     graph.priors_in(v) := cached_initial_priors(v)
   }
-  for(c <- factor_labels) {
+  for(c <- chk_labels) {
     graph.in_syndromes(c) := cached_syndromes(c)
   }
   graph.state := controller.state

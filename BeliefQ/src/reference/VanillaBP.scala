@@ -10,11 +10,11 @@ object State extends Enumeration {
 
 class VanillaBP[V, F](
     var_labels: Set[V],
-    factor_labels: Set[F],
+    chk_labels: Set[F],
     edges: Set[(V, F)],
     syndromes: Map[F, Boolean],
     log_priors: Map[V, BigDecimal]) {
-  val geo = new TannerGraphGeometry(var_labels, factor_labels, edges)
+  val geo = new TannerGraphGeometry(var_labels, chk_labels, edges)
   var state = State.computeCToV
 
   var vToCs = {
@@ -85,7 +85,7 @@ class VanillaBP[V, F](
   }
 
   def doCToV() = {
-    for(c <- factor_labels) {
+    for(c <- chk_labels) {
       val neighbors = geo.get_neighboring_variables(c).toSeq
       val incoming_messages = for(v <- neighbors) yield vToCs((v, c))
       val syndrome = syndromes(c)

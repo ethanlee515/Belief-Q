@@ -12,10 +12,10 @@ object TestReference extends TestSuite {
   def tests = Tests {
     test("Scala reference matches Rust output") {
       for(i <- 0 until 10000) {
-        println(f"checking data: ${i}")
+        // println(f"checking data: ${i}")
         if(SimData.is_converged(i) && !SimData.strange_indices.contains(i)) {
           val var_labels = (0 until SimData.num_vars).toSet
-          val factor_labels = (0 until SimData.num_checks).toSet
+          val chk_labels = (0 until SimData.num_checks).toSet
           val syndromes = {
             for(j <- 0 until SimData.num_checks) yield {
               j -> SimData.syndromes_batch(i)(j)
@@ -26,7 +26,7 @@ object TestReference extends TestSuite {
               j -> SimData.log_priors(j)
             }
           }.toMap
-          val vanillaBP = new VanillaBP(var_labels, factor_labels, SimData.edges, syndromes, log_priors)
+          val vanillaBP = new VanillaBP(var_labels, chk_labels, SimData.edges, syndromes, log_priors)
           val results : Option[Map[Int, Boolean]] = vanillaBP.doBP(500)
           val expected_results = SimData.ehat_bp(i)
           results match {

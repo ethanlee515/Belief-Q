@@ -9,9 +9,9 @@ import utest.assert
 
 object TestBeliefQ extends TestSuite {
   def tests = Tests {
-    val num_tests = 1000
+    val num_tests = 10000
     val var_labels = (0 until SimData.num_vars).toSet
-    val factor_labels = (0 until SimData.num_checks).toSet
+    val chk_labels = (0 until SimData.num_checks).toSet
     val log_priors : Map[Int, BigDecimal] = {
       for(j <- 0 until SimData.num_vars) yield {
         j -> SimData.log_priors(j)
@@ -26,11 +26,11 @@ object TestBeliefQ extends TestSuite {
     }
     val params = new BeliefQParams()
     val correct_results = syndromes_batch.map { syndromes =>
-      val vanillaBP = new reference.VanillaBP(var_labels, factor_labels, SimData.edges, syndromes, log_priors)
+      val vanillaBP = new reference.VanillaBP(var_labels, chk_labels, SimData.edges, syndromes, log_priors)
       vanillaBP.doBP(500)
     }
     test("vanilla BP matches reference") {
-      SimConfig.compile { new VanillaBP(params, var_labels, factor_labels, SimData.edges) }.doSim { dut =>
+      SimConfig.compile { new VanillaBP(params, var_labels, chk_labels, SimData.edges) }.doSim { dut =>
         dut.inputs.valid #= false
         val cd = dut.clockDomain
         cd.forkStimulus(10)
@@ -49,7 +49,7 @@ object TestBeliefQ extends TestSuite {
               val is_ready = !(cd.waitSamplingWhere(500) { dut.inputs.ready.toBoolean })
               assert(is_ready)
               dut.inputs.valid #= true
-              for(c <- factor_labels) {
+              for(c <- chk_labels) {
                 dut.inputs.syndromes(c) #= syndromes(c)
               }
               cd.waitSampling()
@@ -68,9 +68,9 @@ object TestBeliefQ extends TestSuite {
 
     test("vanilla BP step-by-step test") {
       val syndromes = syndromes_batch(0)
-      val ref = new reference.VanillaBP(var_labels, factor_labels, SimData.edges, syndromes, log_priors)
+      val ref = new reference.VanillaBP(var_labels, chk_labels, SimData.edges, syndromes, log_priors)
       SimConfig.compile {
-        val dut = new VanillaBP(params, var_labels, factor_labels, SimData.edges)
+        val dut = new VanillaBP(params, var_labels, chk_labels, SimData.edges)
         dut.controller.state.simPublic()
         dut.graph.converged.simPublic()
         for(v <- var_labels) {
@@ -96,7 +96,7 @@ object TestBeliefQ extends TestSuite {
         sleep(100)
         assert(dut.inputs.ready.toBoolean)
         dut.inputs.valid #= true
-        for(c <- factor_labels) {
+        for(c <- chk_labels) {
           dut.inputs.syndromes(c) #= syndromes(c)
         }
         cd.waitSampling()
