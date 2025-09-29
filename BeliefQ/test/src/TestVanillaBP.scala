@@ -25,7 +25,6 @@ object TestBeliefQ extends TestSuite {
       }.toMap
     }
     val params = new BeliefQParams()
-    /*
     val correct_results = syndromes_batch.map { syndromes =>
       val vanillaBP = new reference.VanillaBP(var_labels, factor_labels, SimData.edges, syndromes, log_priors)
       vanillaBP.doBP(500)
@@ -43,7 +42,6 @@ object TestBeliefQ extends TestSuite {
           dut.inputs.initial_priors(v) #= log_priors(v)
         }
         for(i <- 0 until num_tests) {
-          println(f"checking data: ${i}")
           val syndromes = syndromes_batch(i)
           val correct_result = correct_results(i)
           correct_result match {
@@ -58,20 +56,15 @@ object TestBeliefQ extends TestSuite {
               dut.inputs.valid #= false
               val converged = !(cd.waitSamplingWhere(2000) { dut.outputs.valid.toBoolean })
               assert(converged)
-              /*
-              for(v <- geo.variables) {
-                if(dut.outputs.corrections(v).toBoolean)
-                println(f"need to correct: ${v}")
+              for(v <- var_labels) {
+                assert(dut.outputs.corrections(v).toBoolean == res(v))
               }
-              val syndromes = syndromeSampler.syndromes
-              */
             }
             case None => { }
           }
         }
       }
     }
-    */
 
     test("vanilla BP step-by-step test") {
       val syndromes = syndromes_batch(0)
