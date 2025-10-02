@@ -53,17 +53,51 @@ class TwoMins3(params: BeliefQParams) extends Component {
   }
 }
 
-/*
 class TwoMins6(params: BeliefQParams) extends Component {
   import params._
   // IO
   val data = in port Vec.fill(6)(unsigned_msg_t())
-  val ids = in port UInt(3 bits)
+  val ids = in port Vec.fill(6)(UInt(3 bits))
   val min1, min2 = out port unsigned_msg_t()
   val id_min1, id_min2 = out port UInt(3 bits)
   // logic
+  val left, right = new TwoMins3(params)
+  left.data := Vec(data.slice(0, 3))
+  left.ids := Vec(ids.slice(0, 3))
+  right.data := Vec(data.slice(3, 6))
+  right.ids := Vec(ids.slice(3, 6))
+  val left_min1 = RegNext(left.min1)
+  val left_min2 = RegNext(left.min2)
+  val left_id1 = RegNext(left.id_min1)
+  val left_id2 = RegNext(left.id_min2)
+  val right_min1 = RegNext(right.min1)
+  val right_min2 = RegNext(right.min2)
+  val right_id1 = RegNext(right.id_min1)
+  val right_id2 = RegNext(right.id_min2)
+  when(left_min1 < right_min1) {
+    min1 := left_min1
+    id_min1 := left_id1
+    when(left_min2 < right_min1) {
+      min2 := left_min2
+      id_min2 := left_id2
+    } otherwise {
+      min2 := right_min1
+      id_min2 := right_id1
+    }
+  } otherwise { // right_min1 < left_min1
+    min1 := right_min1
+    id_min1 := right_id1
+    when(right_min2 < left_min1) {
+      min2 := right_min2
+      id_min2 := right_id2
+    } otherwise {
+      min2 := left_min1
+      id_min2 := left_id1
+    }
+  }
 }
 
+/*
 class TwoMins(deg: Int) extends Component {
 
 }
