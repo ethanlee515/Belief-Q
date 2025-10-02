@@ -11,7 +11,7 @@ import reference._
 object TestVToC extends TestSuite {
   import Sampler._
   def tests = Tests {
-    val params = new BeliefQParams
+    val params = new BeliefQParams(8, 8)
     test("test v to c message") {
       SimConfig.compile { new VToC(params, 5) }.doSim { dut =>
         dut.inputs.valid #= false

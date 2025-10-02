@@ -2,6 +2,7 @@ package beliefq
 
 import spinal.core._
 import spinal.lib._
+import spinal.lib.misc.pipeline._
 
 case class CToVInputs(params: BeliefQParams, deg: Int) extends Bundle {
   import params._
@@ -57,15 +58,16 @@ class TwoMins6(params: BeliefQParams) extends Component {
   import params._
   // IO
   val data = in port Vec.fill(6)(unsigned_msg_t())
-  val ids = in port Vec.fill(6)(UInt(3 bits))
   val min1, min2 = out port unsigned_msg_t()
   val id_min1, id_min2 = out port UInt(3 bits)
   // logic
   val left, right = new TwoMins3(params)
+  for(i <- 0 until 3) {
+    left.ids(i) := i
+    right.ids(i) := i + 3
+  }
   left.data := Vec(data.slice(0, 3))
-  left.ids := Vec(ids.slice(0, 3))
   right.data := Vec(data.slice(3, 6))
-  right.ids := Vec(ids.slice(3, 6))
   val left_min1 = RegNext(left.min1)
   val left_min2 = RegNext(left.min2)
   val left_id1 = RegNext(left.id_min1)
@@ -97,90 +99,89 @@ class TwoMins6(params: BeliefQParams) extends Component {
   }
 }
 
-/*
-class TwoMins(deg: Int) extends Component {
-
+class TwoMins(params: BeliefQParams, deg: Int) extends Component {
+  require(deg <= 6)
+  import params._
+  val data = in port Vec.fill(deg)(unsigned_msg_t())
+  val min6 = new TwoMins6(params)
+  val min1, min2 = out port unsigned_msg_t()
+  val id_min1, id_min2 = out port UInt(3 bits)
+  for(i <- 0 until deg) {
+    min6.data(i) := data(i)
+  }
+  for(i <- deg until 6) {
+    min6.data(i) := min6.data(i).maxValue
+  }
+  min1 := min6.min1
+  min2 := min6.min2
+  id_min1 := min6.id_min1
+  id_min2 := min6.id_min2
 }
-*/
 
 class CToV(params: BeliefQParams, deg: Int) extends Component {
   import params._
   /* -- IO -- */
   val inputs = in port Flow(CToVInputs(params, deg))
   val output = out port Flow(Vec.fill(deg)(message_t()))
-  val delays = 2 * deg + 1
-  // states
-  object LocalState extends SpinalEnum {
-    val idle, forward, backward, done = newElement()
+  val delays = 3
+  /* -- logic -- */
+  val parsingStage = Node()
+  val a1 = new parsingStage.Area {
+    val abs_m = Vec.fill(deg)(unsigned_msg_t())
+    val is_neg = Vec.fill(deg)(Bool())
+    val s = Bool()
+    for(i <- 0 until deg) {
+      val m = inputs.payload.messages(i)
+      val mt = unsigned_msg_t()
+      mt := m.truncated
+      val is_negative = m.isNegative
+      is_neg(i) := is_negative
+      val minus_m = unsigned_msg_t()
+      minus_m := (-m).truncated
+      abs_m(i) := (is_negative ? minus_m | mt)
+    }
+    s := inputs.payload.syndrome
+    val abs_messages = insert(abs_m)
+    val is_negatives = insert(is_neg)
+    val sign_parity = insert(s)
   }
-  val state = RegInit(LocalState.idle)
-  val ctr = Reg(UInt(log2Up(deg) bits)) init(0)
-  val abs_messages = Vec.fill(deg)(Reg(message_t))
-  val is_negatives = Vec.fill(deg)(Reg(Bool()))
-  val result = Vec.fill(deg)(Reg(message_t))
-  output.valid := (state === LocalState.done)
-  output.payload := result
-  val min1_valid = Reg(Bool())
-  val min2_valid = Reg(Bool())
-  val min1 = Reg(message_t())
-  val min2 = Reg(message_t())
-  val min1_idx = Reg(UInt(log2Up(deg) bits))
-  val min2_idx = Reg(UInt(log2Up(deg) bits))
-  val sign_parity = Reg(Bool())
-  switch(state) {
-    is(LocalState.idle) {
-      when(inputs.valid) {
-        state := LocalState.forward
-        ctr := 0
-        for(i <- 0 until deg) {
-          val m = inputs.payload.messages(i)
-          val is_negative = m.isNegative
-          is_negatives(i) := is_negative
-          val minus_m = message_t()
-          minus_m := (-m).truncated
-          abs_messages(i) := is_negative ? minus_m | m
-        }
-        sign_parity := inputs.payload.syndrome
-        min1_valid := False
-        min2_valid := False
-      }
+  val twoMinsStage1 = Node()
+  val a2 = new twoMinsStage1.Area {
+    val twomins = new TwoMins(params, deg)
+    twomins.data := a1.abs_messages
+    val xor_signs = insert(
+      a1.sign_parity ^ a1.is_negatives.asBits.xorR)
+  }
+  val twoMinsStage2 = Node()
+  val a3 = new twoMinsStage2.Area {
+    val min1 = insert(a2.twomins.min1) 
+    val min2 = insert(a2.twomins.min2) 
+    val id_min1 = insert(a2.twomins.id_min1) 
+    val id_min2 = insert(a2.twomins.id_min2)
+    val res_signs = Vec.fill(deg)(Bool())
+    for(i <- 0 until deg) {
+      res_signs(i) := a2.xor_signs ^ a1.is_negatives(i)
     }
-    is(LocalState.forward) {
-      val m = abs_messages(ctr)
-      when((!min1_valid) || m < min1) {
-        min2 := min1
-        min2_idx := min1_idx
-        min2_valid := min1_valid
-        min1 := m
-        min1_idx := ctr
-        min1_valid := True
-      } elsewhen((!min2_valid) || m < min2) {
-        min2 := m
-        min2_idx := ctr
-        min2_valid := True
-      }
-      val s = is_negatives(ctr)
-      sign_parity := sign_parity ^ s
-      when(ctr === deg - 1) {
-        state := LocalState.backward
+    val result_signs = insert(res_signs)
+  }
+  val outputStage = Node()
+  val a4 = new outputStage.Area {
+    for(i <- 0 until deg) {
+      val ri = message_t()
+      when(a3.id_min1 === U(i)) {
+        ri := a3.min2
       } otherwise {
-        ctr := ctr + 1
+        ri := a3.min1
       }
-    }
-    is(LocalState.backward) {
-      val ri_sgn = sign_parity ^ is_negatives(ctr)
-      val ri = (ctr === min1_idx) ? min2 | min1
       val minus_ri = message_t()
       minus_ri := (-ri).truncated
-      result(ctr) := ri_sgn ? minus_ri | ri
-      when(ctr === 0) {
-        state := LocalState.done
-      } otherwise {
-        ctr := ctr - 1
-      }
+      output.payload(i) := a3.result_signs(i) ? minus_ri | ri
     }
-    is(LocalState.done) {
-      state := LocalState.idle
-    }
+    output.valid := isValid
   }
+  parsingStage.valid := inputs.valid
+  val pipeline = Builder(List(
+    StageLink(parsingStage, twoMinsStage1),
+    StageLink(twoMinsStage1, twoMinsStage2),
+    StageLink(twoMinsStage2, outputStage)))
 }

@@ -12,6 +12,8 @@ object TestCToV extends TestSuite {
   import Sampler._
 
   def tests = Tests {
+    val params = new BeliefQParams(8, 8)
+
     test("CToVRef") {
       val inputs = List(
         BigDecimal("1.11"),
@@ -25,7 +27,6 @@ object TestCToV extends TestSuite {
     }
 
     test("TwoMins3") {
-      val params = new BeliefQParams()
       SimConfig.compile { new TwoMins3(params) }.doSim { dut =>
         dut.data(0) #= 5
         dut.ids(0) #= 4
@@ -42,7 +43,6 @@ object TestCToV extends TestSuite {
     }
 
     test("TwoMins6") {
-      val params = new BeliefQParams()
       SimConfig.compile { new TwoMins6(params) }.doSim { dut =>
         val cd = dut.clockDomain
         cd.forkStimulus(10)
@@ -57,12 +57,6 @@ object TestCToV extends TestSuite {
         dut.data(3) #= 2
         dut.data(4) #= 9
         dut.data(5) #= 5
-        dut.ids(0) #= 0
-        dut.ids(1) #= 1
-        dut.ids(2) #= 2
-        dut.ids(3) #= 3
-        dut.ids(4) #= 4
-        dut.ids(5) #= 5
         cd.waitSampling()
         cd.waitSampling()
         assert(dut.min1.toBigDecimal == 2)
@@ -72,8 +66,29 @@ object TestCToV extends TestSuite {
       }
     }
 
+    test("TwoMins") {
+      SimConfig.compile { new TwoMins(params, 4) }.doSim { dut =>
+        val cd = dut.clockDomain
+        cd.forkStimulus(10)
+        cd.assertReset()
+        sleep(100)
+        cd.deassertReset()
+        sleep(100)
+        cd.waitSampling()
+        dut.data(0) #= 11
+        dut.data(1) #= 3
+        dut.data(2) #= 5
+        dut.data(3) #= 12
+        cd.waitSampling()
+        cd.waitSampling()
+        assert(dut.min1.toBigDecimal == 3)
+        assert(dut.id_min1.toInt == 1)
+        assert(dut.min2.toBigDecimal == 5)
+        assert(dut.id_min2.toInt == 2)
+      }
+    }
+
     test("CToV hardware vs golden reference") {
-      val params = new BeliefQParams()
       SimConfig.compile { new CToV(params, 5) }.doSim { dut =>
         dut.inputs.valid #= false
         val cd = dut.clockDomain
