@@ -24,6 +24,23 @@ object TestCToV extends TestSuite {
 //      println(f"VToC results = $results")
     }
 
+    test("TwoMins3") {
+      val params = new BeliefQParams()
+      SimConfig.compile { new TwoMins3(params) }.doSim { dut =>
+        dut.data(0) #= 5
+        dut.ids(0) #= 4
+        dut.data(1) #= 2
+        dut.ids(1) #= 6
+        dut.data(2) #= 7
+        dut.ids(2) #= 3
+        sleep(1)
+        assert(dut.min1.toBigDecimal == 2)
+        assert(dut.id_min1.toInt == 6)
+        assert(dut.min2.toBigDecimal == 5)
+        assert(dut.id_min2.toInt == 4)
+      }
+    }
+
     test("CToV hardware vs golden reference") {
       val params = new BeliefQParams()
       SimConfig.compile { new CToV(params, 5) }.doSim { dut =>

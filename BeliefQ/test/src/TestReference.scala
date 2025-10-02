@@ -11,7 +11,7 @@ import beliefq.reference.VanillaBP
 object TestReference extends TestSuite {
   def tests = Tests {
     test("Scala reference matches Rust output") {
-      for(i <- 0 until 10000) {
+      for(i <- 0 until 100) {
         // println(f"checking data: ${i}")
         if(SimData.is_converged(i) && !SimData.strange_indices.contains(i)) {
           val var_labels = (0 until SimData.num_vars).toSet

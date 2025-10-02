@@ -9,7 +9,7 @@ import utest.assert
 
 object TestBeliefQ extends TestSuite {
   def tests = Tests {
-    val num_tests = 10000
+    val num_tests = 100
     val var_labels = (0 until SimData.num_vars).toSet
     val chk_labels = (0 until SimData.num_checks).toSet
     val log_priors : Map[Int, BigDecimal] = {

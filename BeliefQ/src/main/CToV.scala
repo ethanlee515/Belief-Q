@@ -9,6 +9,66 @@ case class CToVInputs(params: BeliefQParams, deg: Int) extends Bundle {
   val messages = Vec.fill(deg)(message_t())
 }
 
+class TwoMins3(params: BeliefQParams) extends Component {
+  import params._
+  // IO
+  val data = in port Vec.fill(3)(unsigned_msg_t())
+  val ids = in port Vec.fill(3)(UInt(3 bits))
+  val min1, min2 = out port unsigned_msg_t()
+  val id_min1, id_min2 = out port UInt(3 bits)
+  // logic
+  val lt01 = data(0) < data(1)
+  val lt02 = data(0) < data(2)
+  val lt12 = data(1) < data(2)
+  when(lt01 && lt02) {
+    min1 := data(0)
+    id_min1 := ids(0)
+    when(lt12) {
+      min2 := data(1)
+      id_min2 := ids(1)
+    } otherwise {
+      min2 := data(2)
+      id_min2 := ids(2)
+    }
+  } elsewhen(!lt01 && lt12) {
+    min1 := data(1)
+    id_min1 := ids(1)
+    when(lt02) {
+      min2 := data(0)
+      id_min2 := ids(0)
+    } otherwise {
+      min2 := data(2)
+      id_min2 := ids(2)
+    }
+  } otherwise {
+    min1 := data(2)
+    id_min1 := ids(2)
+    when(lt01) {
+      min2 := data(0)
+      id_min2 := ids(0)
+    } otherwise {
+      min2 := data(1)
+      id_min2 := ids(1)
+    }
+  }
+}
+
+/*
+class TwoMins6(params: BeliefQParams) extends Component {
+  import params._
+  // IO
+  val data = in port Vec.fill(6)(unsigned_msg_t())
+  val ids = in port UInt(3 bits)
+  val min1, min2 = out port unsigned_msg_t()
+  val id_min1, id_min2 = out port UInt(3 bits)
+  // logic
+}
+
+class TwoMins(deg: Int) extends Component {
+
+}
+*/
+
 class CToV(params: BeliefQParams, deg: Int) extends Component {
   import params._
   /* -- IO -- */
