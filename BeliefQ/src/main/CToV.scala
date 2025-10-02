@@ -76,7 +76,8 @@ class TwoMins6(params: BeliefQParams) extends Component {
   val right_min2 = RegNext(right.min2)
   val right_id1 = RegNext(right.id_min1)
   val right_id2 = RegNext(right.id_min2)
-  when(left_min1 < right_min1) {
+  val is_left = RegNext(left_min1 < right_min1)
+  when(is_left) {
     min1 := left_min1
     id_min1 := left_id1
     when(left_min2 < right_min1) {
@@ -123,7 +124,6 @@ class CToV(params: BeliefQParams, deg: Int) extends Component {
   /* -- IO -- */
   val inputs = in port Flow(CToVInputs(params, deg))
   val output = out port Flow(Vec.fill(deg)(message_t()))
-  val delays = 3
   /* -- logic -- */
   val parsingStage = Node()
   val a1 = new parsingStage.Area {
@@ -152,6 +152,7 @@ class CToV(params: BeliefQParams, deg: Int) extends Component {
     val xor_signs = insert(
       a1.sign_parity ^ a1.is_negatives.asBits.xorR)
   }
+  val twoMinsStageExtra = Node()
   val twoMinsStage2 = Node()
   val a3 = new twoMinsStage2.Area {
     val min1 = insert(a2.twomins.min1) 
@@ -182,6 +183,8 @@ class CToV(params: BeliefQParams, deg: Int) extends Component {
   parsingStage.valid := inputs.valid
   val pipeline = Builder(List(
     StageLink(parsingStage, twoMinsStage1),
-    StageLink(twoMinsStage1, twoMinsStage2),
+    StageLink(twoMinsStage1, twoMinsStageExtra),
+    StageLink(twoMinsStageExtra, twoMinsStage2),
     StageLink(twoMinsStage2, outputStage)))
+  val delays = 4
 }
