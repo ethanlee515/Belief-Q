@@ -28,13 +28,21 @@ object TestCToV extends TestSuite {
 
     test("TwoMins3") {
       SimConfig.compile { new TwoMins3(params) }.doSim { dut =>
+        val cd = dut.clockDomain
+        cd.forkStimulus(10)
+        cd.assertReset()
+        sleep(100)
+        cd.deassertReset()
+        sleep(100)
+        cd.waitSampling()
         dut.data(0) #= 5
         dut.ids(0) #= 4
         dut.data(1) #= 2
         dut.ids(1) #= 6
         dut.data(2) #= 7
         dut.ids(2) #= 3
-        sleep(1)
+        cd.waitSampling()
+        cd.waitSampling()
         assert(dut.min1.toBigDecimal == 2)
         assert(dut.id_min1.toInt == 6)
         assert(dut.min2.toBigDecimal == 5)
@@ -59,6 +67,8 @@ object TestCToV extends TestSuite {
         dut.data(5) #= 5
         cd.waitSampling()
         cd.waitSampling()
+        cd.waitSampling()
+        cd.waitSampling()
         assert(dut.min1.toBigDecimal == 2)
         assert(dut.id_min1.toInt == 3)
         assert(dut.min2.toBigDecimal == 4)
@@ -79,6 +89,8 @@ object TestCToV extends TestSuite {
         dut.data(1) #= 3
         dut.data(2) #= 5
         dut.data(3) #= 12
+        cd.waitSampling()
+        cd.waitSampling()
         cd.waitSampling()
         cd.waitSampling()
         assert(dut.min1.toBigDecimal == 3)

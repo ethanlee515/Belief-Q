@@ -13,7 +13,7 @@ class VToC(params: BeliefQParams, deg: Int) extends Component {
   import params._
   /* -- IO -- */
   val inputs = in port Flow(VToCInputs(params, deg))
-  val output = out port Flow(Vec.fill(deg)(message_t()))
+  val output = out port Flow(Vec.fill(deg)(Reg(message_t())))
   /* logic */
   val sumMessages = new SumOfMessages(params, deg + 1)
   for(i <- 0 until deg) {
@@ -23,7 +23,7 @@ class VToC(params: BeliefQParams, deg: Int) extends Component {
   for(i <- 0 until deg) {
     output.payload(i) := (sumMessages.result - inputs.messages(i)).truncated
   }
-  val delays = sumMessages.delays
+  val delays = sumMessages.delays + 1
   output.valid := Delay(inputs.valid, delays, init=False)
 }
 
