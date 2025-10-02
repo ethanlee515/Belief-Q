@@ -8,6 +8,22 @@ import utest._
 import utest.assert
 
 object DoSim extends App {
+  val var_labels = (0 until SimData.num_vars).toSet
+  val chk_labels = (0 until SimData.num_checks).toSet
+  val log_priors : Map[Int, BigDecimal] = {
+    for(j <- 0 until SimData.num_vars) yield {
+      j -> SimData.log_priors(j)
+    }
+  }.toMap
+  val syndromes_batch = {
+    for(i <- 0 until 5) yield {
+      for(j <- 0 until SimData.num_checks) yield {
+        j -> SimData.syndromes_batch(i)(j)
+      }
+    }.toMap
+  }
+  val params = new BeliefQParams()
+  /*
   val params = new BeliefQParams()
   val d = 3
   val num_meas = 1
@@ -19,15 +35,17 @@ object DoSim extends App {
   val syndromes = syndromeSampler.syndromes
   println(f"generated syndromes = ${syndromes}")
   println(f"generated priors = ${log_prior}")
+  */
+  val syndromes = syndromes_batch(0)
   SimConfig.compile {
-    val dut = new VanillaBP(params, geo.variables, geo.factors, geo.edges)
+    val dut = new VanillaBP(params, var_labels, chk_labels, SimData.edges)
     dut.controller.state.simPublic()
     dut.graph.converged.simPublic()
-    for(v <- geo.variables) {
+    for(v <- var_labels) {
       dut.graph.variables(v).decision.simPublic()
       dut.graph.variables(v).prior.simPublic()
     }
-    for(e <- geo.edges) {
+    for(e <- SimData.edges) {
       dut.graph.edges(e).toC.simPublic()
       dut.graph.edges(e).toV.simPublic()
     }
@@ -42,10 +60,10 @@ object DoSim extends App {
     cd.deassertReset()
     sleep(100)
     dut.inputs.valid #= true
-    for(v <- geo.variables) {
-      dut.inputs.initial_priors(v) #= log_prior(v)
+    for(v <- var_labels) {
+      dut.inputs.initial_priors(v) #= log_priors(v)
     }
-    for(c <- geo.factors) {
+    for(c <- chk_labels) {
       dut.inputs.syndromes(c) #= syndromes(c)
     }
     println(f"setting input when state = ${dut.controller.state.toEnum}")
@@ -54,8 +72,9 @@ object DoSim extends App {
     for(t <- 0 until 100) {
       val state = dut.controller.state.toEnum
       if(state != State.result_valid) {
-        println(f"t = $t, state = ${state}, delayed valid = ${dut.delayed_inputs_valid.toBoolean}")
+        println(f"t = $t, state = ${state}")
       }
+      /*
       if(state == State.start_computing_cToV) {
         for(e <- geo.edges) {
           println(f"v to c at ${e} = ${dut.graph.edges(e).toC.toBigDecimal}")
@@ -72,6 +91,7 @@ object DoSim extends App {
         }
         println(f"overall converge check = ${dut.graph.converged.toBoolean}")
       }
+      */
       cd.waitSampling()
     }
   }
