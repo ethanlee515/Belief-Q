@@ -8,6 +8,7 @@ import spinal.lib._
 class Controller[V, C](graph: TannerGraph[V, C]) extends Component {
   val start = in port Bool()
   val state = out port Reg(State()) init(State.idle)
+  state.addAttribute("MAX_FANOUT", 16)
   val converged = in port Bool()
   // TODO Don't actually need 8 bits here
   // take max over all delays...

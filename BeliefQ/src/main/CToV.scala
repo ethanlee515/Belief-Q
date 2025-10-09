@@ -18,9 +18,9 @@ class TwoMins3(params: BeliefQParams) extends Component {
   val min1, min2 = out port unsigned_msg_t()
   val id_min1, id_min2 = out port UInt(3 bits)
   // logic
-  val lt01 = data(0) < data(1)
-  val lt02 = data(0) < data(2)
-  val lt12 = data(1) < data(2)
+  val lt01 = RegNext(data(0) < data(1))
+  val lt02 = RegNext(data(0) < data(2))
+  val lt12 = RegNext(data(1) < data(2))
   when(lt01 && lt02) {
     min1 := data(0)
     id_min1 := ids(0)
@@ -152,7 +152,8 @@ class CToV(params: BeliefQParams, deg: Int) extends Component {
     val xor_signs = insert(
       a1.sign_parity ^ a1.is_negatives.asBits.xorR)
   }
-  val twoMinsStageExtra = Node()
+  val twoMinsStageExtra1 = Node()
+  val twoMinsStageExtra2 = Node()
   val twoMinsStage2 = Node()
   val a3 = new twoMinsStage2.Area {
     val min1 = insert(a2.twomins.min1) 
@@ -165,26 +166,34 @@ class CToV(params: BeliefQParams, deg: Int) extends Component {
     }
     val result_signs = insert(res_signs)
   }
-  val outputStage = Node()
-  val a4 = new outputStage.Area {
+  val rsSelectionStage = Node()
+  val a4 = new rsSelectionStage.Area {
+    val rv = Vec.fill(deg)(message_t())
     for(i <- 0 until deg) {
-      val ri = message_t()
       when(a3.id_min1 === U(i)) {
-        ri := a3.min2
+        rv(i) := a3.min2
       } otherwise {
-        ri := a3.min1
+        rv(i) := a3.min1
       }
+    }
+    val rs = insert(rv)
+  }
+  val outputStage = Node()
+  val a5 = new outputStage.Area {
+    for(i <- 0 until deg) {
       val minus_ri = message_t()
-      minus_ri := (-ri).truncated
-      output.payload(i) := a3.result_signs(i) ? minus_ri | ri
+      minus_ri := (-a4.rs(i)).truncated
+      output.payload(i) := a3.result_signs(i) ? minus_ri | a4.rs(i)
     }
     output.valid := isValid
   }
   parsingStage.valid := inputs.valid
   val pipeline = Builder(List(
     StageLink(parsingStage, twoMinsStage1),
-    StageLink(twoMinsStage1, twoMinsStageExtra),
-    StageLink(twoMinsStageExtra, twoMinsStage2),
-    StageLink(twoMinsStage2, outputStage)))
-  val delays = 4
+    StageLink(twoMinsStage1, twoMinsStageExtra1),
+    StageLink(twoMinsStageExtra1, twoMinsStageExtra2),
+    StageLink(twoMinsStageExtra2, twoMinsStage2),
+    StageLink(twoMinsStage2, rsSelectionStage),
+    StageLink(rsSelectionStage, outputStage)))
+  val delays = 6
 }

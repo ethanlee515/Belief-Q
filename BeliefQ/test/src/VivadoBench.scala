@@ -33,5 +33,5 @@ object VivadoBench extends App {
   val rtl = Rtl(
     SpinalVerilog(new VanillaBP(params, var_labels, chk_labels, SimData.edges))
   )
-  Bench(List(rtl), XilinxRfsocTarget(700 MHz), "./build/")
+  Bench(List(rtl), XilinxRfsocTarget(600 MHz), "./build/")
 }
