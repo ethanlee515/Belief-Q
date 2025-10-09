@@ -10,26 +10,25 @@ class Variable(params: BeliefQParams, deg: Int) extends Component {
   val toC = out port Vec.fill(deg)(Flow(message_t))
   val prior_in = in port message_t()
   val state = in port State()
-  val decision = out port Bool()
+  val decision = out port Reg(Bool())
+  /* -- logic -- */
   val prior = Reg(message_t())
-  val vToC = new VToC(params, deg)
-  vToC.inputs.valid := (state === State.start_computing_vToC)
-  vToC.inputs.payload.prior := prior
-  vToC.inputs.messages := fromC
-  val vToCDelays = vToC.delays
-  val decide = new Decide(params, deg + 1)
-  val decisionDelays = decide.delays
-  for(i <- 0 until deg) {
-    decide.messages(i) := fromC(i)
-  }
-  decide.messages(deg) := prior
-  val decideDelays = decide.delays
-  decision := decide.decision
   when(state === State.loading_inputs) {
     prior := prior_in
   }
+  val sumMessages = new SumOfMessages(params, deg + 1)
+  val sumMessageDelays = sumMessages.delays
   for(i <- 0 until deg) {
-    toC(i).payload := vToC.output.payload(i)
-    toC(i).valid := vToC.output.valid
+    sumMessages.messages(i) := fromC(i)
   }
+  sumMessages.messages(deg) := prior
+  val start = (state === State.start_summing_messages)
+  val valid = Delay(start, sumMessageDelays + 1, init=False)
+  for(i <- 0 until deg) {
+    val message = message_t()
+    message := (sumMessages.result - fromC(i)).truncated
+    toC(i).payload := RegNext(message)
+    toC(i).valid := valid
+  }
+  decision := sumMessages.result.isNegative
 }

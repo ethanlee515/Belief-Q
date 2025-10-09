@@ -21,7 +21,7 @@ class Edge(params: BeliefQParams) extends Component {
   when(state === State.computing_cToV && fromC.valid) {
     cToV := fromC.payload
   }
-  when(state === State.computing_vToC && fromV.valid) {
+  when(/* state === State.computing_vToC && */ fromV.valid) {
     vToC := fromV.payload
   }
   toC := vToC

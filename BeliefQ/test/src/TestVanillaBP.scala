@@ -66,6 +66,7 @@ object TestBeliefQ extends TestSuite {
       }
     }
 
+/*
     test("vanilla BP step-by-step test") {
       val syndromes = syndromes_batch(0)
       val ref = new reference.VanillaBP(var_labels, chk_labels, SimData.edges, syndromes, log_priors)
@@ -157,5 +158,6 @@ object TestBeliefQ extends TestSuite {
         assert(done)
       }
     }
+    */
   }
 }

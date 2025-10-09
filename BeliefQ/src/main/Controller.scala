@@ -21,17 +21,31 @@ class Controller[V, C](graph: TannerGraph[V, C]) extends Component {
       }
     }
     is(State.loading_inputs) {
-      state := State.start_computing_vToC
+      state := State.start_summing_messages
     }
-    is(State.start_computing_vToC) {
-      state := State.computing_vToC
+    is(State.start_summing_messages) {
+      state := State.summing_messages
       counter := 1
     }
-    is(State.computing_vToC) {
-      when(counter === graph.vToCDelays) {
-        state := State.start_computing_cToV
+    is(State.summing_messages) {
+      when(counter === graph.sumMessageDelays) {
+        state := State.variables_decide
       } otherwise {
         counter := counter + 1
+      }
+    }
+    is(State.variables_decide) {
+      state := State.checks_decide
+    }
+    is(State.checks_decide) {
+      state := State.checking_decision
+    }
+    is(State.checking_decision) {
+      when(converged) {
+        // Result is either valid, or need to restart
+        state := State.result_valid
+      } otherwise {
+        state := State.start_computing_cToV
       }
     }
     is(State.start_computing_cToV) {
@@ -40,30 +54,10 @@ class Controller[V, C](graph: TannerGraph[V, C]) extends Component {
     }
     is(State.computing_cToV) {
       when(counter === graph.cToVDelays) {
-        state := State.start_decide
-      } otherwise {
-        counter := counter + 1
-      }
-    }
-    is(State.start_decide) {
-      state := State.deciding
-      counter := 1
-    }
-    is(State.deciding) {
-      when(counter === graph.decisionDelays) {
-        state := State.checking_decision
-      } otherwise {
-        counter := counter + 1
-      }
-    }
-    is(State.checking_decision) {
-      // TODO this should be a single-cycle thing
-      when(converged) {
-        // Result is either valid, or need to restart
-        state := State.result_valid
-      } otherwise {
+        state := State.start_summing_messages
         // TODO update prior and stuff?
-        state := State.start_computing_vToC
+      } otherwise {
+        counter := counter + 1
       }
     }
     is(State.result_valid) {
