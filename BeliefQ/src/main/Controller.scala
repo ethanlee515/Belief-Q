@@ -36,7 +36,7 @@ class Controller[V, C](graph: TannerGraph[V, C]) extends Component {
       }
     }
     is(State.variables_decide) {
-      state := State.checks_decide
+      state := State.checking_decision
     }
     is(State.checks_decide) {
       state := State.checking_decision

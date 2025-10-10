@@ -105,8 +105,6 @@ class TannerGraph[V, C](
   for(v <- var_labels) {
     corrections(v) := variables(v).decision
   }
-  // TODO Giving one extra cycle in case of off-by-one bug
-  // Can probably remove once finish debugging?
-  val cToVDelays = checks.values.maxBy(_.cToVDelays).cToVDelays + 1
+  val cToVDelays = checks.values.maxBy(_.cToVDelays).cToVDelays
   val sumMessageDelays = variables.values.maxBy(_.sumMessageDelays).sumMessageDelays
 }

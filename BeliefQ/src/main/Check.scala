@@ -16,7 +16,7 @@ class Check(params: BeliefQParams, deg: Int) extends Component {
   cToV.inputs.messages := fromV
   val cToVDelays = cToV.delays
   val neighbor_decisions = in port Vec.fill(deg)(Bool())
-  val satisfied = out port Reg(Bool())
+  val satisfied = out port Bool()
   satisfied := (neighbor_decisions.xorR === syndrome)
   when(state === State.loading_inputs) {
     syndrome := in_syndrome
