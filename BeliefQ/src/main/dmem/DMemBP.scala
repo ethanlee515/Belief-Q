@@ -1,12 +1,13 @@
 package beliefq
-package vanilla
+package dmem
 
 import spinal.core._
 import spinal.lib._
 
-class VanillaBP[V, F](params: BeliefQParams,
+class DMemBP[V, F](params: BeliefQParams,
     var_labels: Set[V],
     chk_labels: Set[F],
+    gammas: Map[V, BigDecimal],
     edges: Set[(V, F)],
   ) extends Component {
   /* -- IO -- */

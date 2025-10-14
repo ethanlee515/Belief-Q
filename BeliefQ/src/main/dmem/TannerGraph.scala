@@ -1,5 +1,5 @@
 package beliefq
-package vanilla
+package dmem
 
 import spinal.core._
 import spinal.lib._
