@@ -7,6 +7,7 @@ import utest.assert
 import spinal.core._
 import spinal.core.sim._
 import spinal.lib._
+import beliefq.vanilla._
 
 object TestCToV extends TestSuite {
   import Sampler._

@@ -6,6 +6,8 @@ import spinal.core.sim._
 import spinal.lib._
 import utest._
 import utest.assert
+import beliefq.vanilla._
+import beliefq.vanilla.VanillaBP
 
 object DoSim extends App {
   val var_labels = (0 until SimData.num_vars).toSet

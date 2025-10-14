@@ -1,4 +1,6 @@
 package beliefq
+package vanilla
+
 import spinal.core._
 import spinal.lib._
 

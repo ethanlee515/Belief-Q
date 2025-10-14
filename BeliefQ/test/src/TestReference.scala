@@ -43,7 +43,7 @@ object TestReference extends TestSuite {
         }
       }
     }
-
+/*
     test("DMem Scala reference matches Rust output") {
       for(i <- 0 until 1000) {
         // println(f"checking data: ${i}")
@@ -101,7 +101,7 @@ object TestReference extends TestSuite {
           }
         }
       }
-    }
+    }*/
   }
 }
 

@@ -1,6 +1,7 @@
 package beliefq
 package test
 
+import beliefq.vanilla._
 import spinal.core._
 import spinal.lib._
 import spinal.lib.eda.bench.{Report, Rtl}

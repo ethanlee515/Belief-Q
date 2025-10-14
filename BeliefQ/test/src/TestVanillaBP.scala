@@ -6,6 +6,7 @@ import spinal.core.sim._
 import spinal.lib._
 import utest._
 import utest.assert
+import beliefq.vanilla._
 
 object TestBeliefQ extends TestSuite {
   def tests = Tests {
