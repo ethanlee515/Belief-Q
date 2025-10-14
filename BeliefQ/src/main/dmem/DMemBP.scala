@@ -7,8 +7,8 @@ import spinal.lib._
 class DMemBP[V, F](params: BeliefQParams,
     var_labels: Set[V],
     chk_labels: Set[F],
-    gammas: Map[V, BigDecimal],
     edges: Set[(V, F)],
+    gammas: Map[V, BigDecimal],
   ) extends Component {
   /* -- IO -- */
   import params._
@@ -32,7 +32,7 @@ class DMemBP[V, F](params: BeliefQParams,
     }
   }
   val outputs = out port Flow(BeliefQOutputs(var_labels))
-  val graph = new TannerGraph(params, var_labels, chk_labels, edges)
+  val graph = new TannerGraph(params, var_labels, chk_labels, edges, gammas)
   val controller = new Controller(graph)
   inputs.ready := (controller.state === State.idle)
   val delayed_inputs_valid = Reg(Bool()) init(False)

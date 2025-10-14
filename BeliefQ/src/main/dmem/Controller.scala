@@ -23,6 +23,10 @@ class Controller[V, C](graph: TannerGraph[V, C]) extends Component {
       }
     }
     is(State.loading_inputs) {
+      state := State.start_computing_cToV
+    }
+    is(State.start_computing_bias) {
+      // TODO is this actually single-cycle?
       state := State.start_summing_messages
     }
     is(State.start_summing_messages) {
@@ -56,7 +60,7 @@ class Controller[V, C](graph: TannerGraph[V, C]) extends Component {
     }
     is(State.computing_cToV) {
       when(counter === graph.cToVDelays) {
-        state := State.start_summing_messages
+        state := State.start_computing_bias
         // TODO update prior and stuff?
       } otherwise {
         counter := counter + 1

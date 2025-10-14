@@ -9,8 +9,6 @@ object SimData {
   val chkmat = Json.parse(chkmat_serialized).as[Seq[Seq[Boolean]]]
   val prior_serialized = Source.fromFile("./test-data/prior.json").mkString
   val priors = Json.parse(prior_serialized).as[Seq[BigDecimal]]
-  val gamma_serialized = Source.fromFile("./test-data/gamma.json").mkString
-  val gammas = Json.parse(gamma_serialized).as[Seq[BigDecimal]]
   val log_priors = priors.map { prior =>
     val p = prior.doubleValue
     val eps = 1e-10
@@ -33,6 +31,13 @@ object SimData {
   val ehat_dmembp = Json.parse(ehat_bp_serialized).as[Seq[Seq[Boolean]]]
   val num_checks = chkmat.length
   val num_vars = chkmat(0).length
+  val gamma_serialized = Source.fromFile("./test-data/gamma.json").mkString
+  val gammas_seq = Json.parse(gamma_serialized).as[Seq[BigDecimal]]
+  val gammas = {
+    for(j <- 0 until num_vars) yield {
+      j -> gammas_seq(j)
+    }
+  }.toMap
   val all_grid_indices = {
     for(i <- 0 until num_vars;
         j <- 0 until num_checks) yield (i, j)

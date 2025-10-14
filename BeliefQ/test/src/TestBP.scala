@@ -7,6 +7,7 @@ import spinal.lib._
 import utest._
 import utest.assert
 import beliefq.vanilla._
+import beliefq.dmem._
 
 object TestBeliefQ extends TestSuite {
   def tests = Tests {
@@ -26,12 +27,53 @@ object TestBeliefQ extends TestSuite {
       }.toMap
     }
     val params = new BeliefQParams()
-    val correct_results = syndromes_batch.map { syndromes =>
-      val vanillaBP = new reference.VanillaBP(var_labels, chk_labels, SimData.edges, syndromes, log_priors)
-      vanillaBP.doBP(500)
-    }
     test("vanilla BP matches reference") {
+      val correct_results = syndromes_batch.map { syndromes =>
+        val vanillaBP = new reference.VanillaBP(var_labels, chk_labels, SimData.edges, syndromes, log_priors)
+        vanillaBP.doBP(500)
+      }
       SimConfig.compile { new VanillaBP(params, var_labels, chk_labels, SimData.edges) }.doSim { dut =>
+        dut.inputs.valid #= false
+        val cd = dut.clockDomain
+        cd.forkStimulus(10)
+        cd.assertReset()
+        sleep(100)
+        cd.deassertReset()
+        sleep(100)
+        for(v <- var_labels) {
+          dut.inputs.initial_priors(v) #= log_priors(v)
+        }
+        for(i <- 0 until num_tests) {
+          val syndromes = syndromes_batch(i)
+          val correct_result = correct_results(i)
+          correct_result match {
+            case Some(res) => {
+              val is_ready = !(cd.waitSamplingWhere(500) { dut.inputs.ready.toBoolean })
+              assert(is_ready)
+              dut.inputs.valid #= true
+              for(c <- chk_labels) {
+                dut.inputs.syndromes(c) #= syndromes(c)
+              }
+              cd.waitSampling()
+              dut.inputs.valid #= false
+              val converged = !(cd.waitSamplingWhere(2000) { dut.outputs.valid.toBoolean })
+              assert(converged)
+              for(v <- var_labels) {
+                assert(dut.outputs.corrections(v).toBoolean == res(v))
+              }
+            }
+            case None => { }
+          }
+        }
+      }
+    }
+
+    test("DMemBP matches reference") {
+      val correct_results = syndromes_batch.map { syndromes =>
+        val bp = new reference.DMemBP(var_labels, chk_labels, SimData.edges, syndromes, log_priors, SimData.gammas)
+        bp.doBP(500)
+      }
+      SimConfig.compile { new DMemBP(params, var_labels, chk_labels, SimData.edges, SimData.gammas) }.doSim { dut =>
         dut.inputs.valid #= false
         val cd = dut.clockDomain
         cd.forkStimulus(10)
