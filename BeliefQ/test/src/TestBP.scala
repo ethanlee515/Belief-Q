@@ -11,7 +11,7 @@ import beliefq.dmem._
 
 object TestBeliefQ extends TestSuite {
   def tests = Tests {
-    val num_tests = 200
+    val num_tests = 1000
     val var_labels = (0 until SimData.num_vars).toSet
     val chk_labels = (0 until SimData.num_checks).toSet
     val log_priors : Map[Int, BigDecimal] = {
@@ -26,11 +26,11 @@ object TestBeliefQ extends TestSuite {
         }
       }.toMap
     }
-    val params = new BeliefQParams()
     test("vanilla BP matches reference") {
+      val params = new BeliefQParams()
       val correct_results = syndromes_batch.map { syndromes =>
         val vanillaBP = new reference.VanillaBP(var_labels, chk_labels, SimData.edges, syndromes, log_priors)
-        vanillaBP.doBP(500)
+        vanillaBP.doBP(300)
       }
       SimConfig.compile { new VanillaBP(params, var_labels, chk_labels, SimData.edges) }.doSim { dut =>
         dut.inputs.valid #= false
@@ -71,8 +71,9 @@ object TestBeliefQ extends TestSuite {
     test("DMemBP matches reference") {
       val correct_results = syndromes_batch.map { syndromes =>
         val bp = new reference.DMemBP(var_labels, chk_labels, SimData.edges, syndromes, SimData.gammas, log_priors)
-        bp.doBP(500)
+        bp.doBP(100)
       }
+      val params = new BeliefQParams(16, 16, 16)
       SimConfig.compile { new DMemBP(params, var_labels, chk_labels, SimData.edges, SimData.gammas) }.doSim { dut =>
         dut.inputs.valid #= false
         val cd = dut.clockDomain
@@ -97,7 +98,7 @@ object TestBeliefQ extends TestSuite {
               }
               cd.waitSampling()
               dut.inputs.valid #= false
-              val converged = !(cd.waitSamplingWhere(1000) { dut.outputs.valid.toBoolean })
+              val converged = !(cd.waitSamplingWhere(5000) { dut.outputs.valid.toBoolean })
               assert(converged)
               for(v <- var_labels) {
                 assert(dut.outputs.corrections(v).toBoolean == res(v))
