@@ -103,10 +103,10 @@ object TestBeliefQ extends TestSuite {
               for(v <- var_labels) {
                 assert(dut.outputs.corrections(v).toBoolean == res(v))
               }
-              println(f"DMemBP test #${i} passed")
+              //println(f"DMemBP test #${i} passed")
             }
             case None => {
-              println(f"DMemBP test #${i} skipped; reference impl did not converge")
+              //println(f"DMemBP test #${i} skipped; reference impl did not converge")
             }
           }
         }

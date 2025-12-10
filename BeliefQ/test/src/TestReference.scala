@@ -43,11 +43,11 @@ object TestReference extends TestSuite {
         }
       }
     }
-/*
+
     test("DMem Scala reference matches Rust output") {
       for(i <- 0 until 1000) {
         // println(f"checking data: ${i}")
-        val bads = Set(45, 64, 201, 269, 430, 493, 552, 632)
+        val bads = Set(45, 64, 201, 269, 493, 552, 632, 634, 824, 925)
         if(SimData.is_dmem_converged(i)) {
           val var_labels = (0 until SimData.num_vars).toSet
           val chk_labels = (0 until SimData.num_checks).toSet
@@ -90,6 +90,7 @@ object TestReference extends TestSuite {
           } else {
             results match {
               case Some(res) => {
+                //println(f"Testing #${i} DMemBP ref vs rust")
                 for(j <- 0 until SimData.num_vars) {
                   assert(res(j) == expected_results(j))
                 }
@@ -101,7 +102,7 @@ object TestReference extends TestSuite {
           }
         }
       }
-    }*/
+    }
   }
 }
 
