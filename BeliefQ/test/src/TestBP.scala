@@ -11,7 +11,7 @@ import beliefq.dmem._
 
 object TestBeliefQ extends TestSuite {
   def tests = Tests {
-    val num_tests = 100
+    val num_tests = 200
     val var_labels = (0 until SimData.num_vars).toSet
     val chk_labels = (0 until SimData.num_checks).toSet
     val log_priors : Map[Int, BigDecimal] = {
@@ -70,7 +70,7 @@ object TestBeliefQ extends TestSuite {
 
     test("DMemBP matches reference") {
       val correct_results = syndromes_batch.map { syndromes =>
-        val bp = new reference.DMemBP(var_labels, chk_labels, SimData.edges, syndromes, log_priors, SimData.gammas)
+        val bp = new reference.DMemBP(var_labels, chk_labels, SimData.edges, syndromes, SimData.gammas, log_priors)
         bp.doBP(500)
       }
       SimConfig.compile { new DMemBP(params, var_labels, chk_labels, SimData.edges, SimData.gammas) }.doSim { dut =>
@@ -97,13 +97,16 @@ object TestBeliefQ extends TestSuite {
               }
               cd.waitSampling()
               dut.inputs.valid #= false
-              val converged = !(cd.waitSamplingWhere(2000) { dut.outputs.valid.toBoolean })
+              val converged = !(cd.waitSamplingWhere(1000) { dut.outputs.valid.toBoolean })
               assert(converged)
               for(v <- var_labels) {
                 assert(dut.outputs.corrections(v).toBoolean == res(v))
               }
+              println(f"DMemBP test #${i} passed")
             }
-            case None => { }
+            case None => {
+              println(f"DMemBP test #${i} skipped; reference impl did not converge")
+            }
           }
         }
       }

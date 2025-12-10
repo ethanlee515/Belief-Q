@@ -48,9 +48,11 @@ class DMemBP[V, F](
     state match {
       case State.computeVToC => {
         doVToC()
+        state = State.computeCToV
       }
       case State.computeCToV => {
         doCToV()
+        state = State.computeDecisions
       }
       case State.computeDecisions => {
         updateDecisions()
@@ -79,7 +81,6 @@ class DMemBP[V, F](
         vToCs((v, c)) = llr(v) - cToVs((v, c))
       }
     }
-    state = State.computeCToV
   }
 
   def doCToV() = {
@@ -93,7 +94,6 @@ class DMemBP[V, F](
         cToVs((v, c)) = outgoing_messages(i)
       }
     }
-    state = State.computeDecisions
   }
 
   def updateDecisions() = {
