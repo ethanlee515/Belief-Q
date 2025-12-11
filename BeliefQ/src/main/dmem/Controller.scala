@@ -27,7 +27,15 @@ class Controller[V, C](graph: TannerGraph[V, C]) extends Component {
     }
     is(State.start_computing_bias) {
       // TODO is this actually single-cycle?
-      state := State.start_summing_messages
+      state := State.computing_bias
+      counter := 1
+    }
+    is(State.computing_bias) {
+      when(counter === graph.bias_delays) {
+        state := State.start_summing_messages
+      } otherwise {
+        counter := counter + 1
+      }
     }
     is(State.start_summing_messages) {
       state := State.summing_messages

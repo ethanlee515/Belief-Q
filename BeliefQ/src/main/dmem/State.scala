@@ -6,7 +6,7 @@ import spinal.lib._
 
 object State extends SpinalEnum {
   val idle, loading_inputs,
-    start_computing_bias, /* computing_bias, */
+    start_computing_bias, computing_bias,
     start_summing_messages, summing_messages,
     variables_decide,
     checks_decide,

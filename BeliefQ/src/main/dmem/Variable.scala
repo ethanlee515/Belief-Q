@@ -13,10 +13,12 @@ class Variable(params: BeliefQParams, deg: Int, gamma_in: BigDecimal) extends Co
   val prior_in = in port message_t()
   val state = in port State()
   val decision = out port Reg(Bool())
-  val bias_delays = 5
+  val bias_delays = 1
   /* -- logic -- */
   val llr = Reg(message_t())
   val prior = Reg(message_t())
+  val biasL = Reg(message_t())
+  val biasR = Reg(message_t())
   val bias = Reg(message_t())
   val gamma = Reg(gamma_t())
   val gamma_compl = Reg(gamma_t())
@@ -25,11 +27,21 @@ class Variable(params: BeliefQParams, deg: Int, gamma_in: BigDecimal) extends Co
     gamma := gamma_in
     gamma_compl := 1 - gamma_in
   }
-  when(state === State.start_computing_bias) {
+  //when(state === State.start_computing_bias) {
+    /*
     when(iter0) {
       bias := prior
     } otherwise {
-      bias := (gamma_compl * prior + gamma * llr).truncated
+    */
+    biasL := (gamma_compl * prior).truncated
+    biasR := (gamma * llr).truncated
+    //}
+  //}
+  when(state === State.computing_bias) {
+    when(iter0) {
+      bias := prior
+    } otherwise {
+      bias := (biasL + biasR).truncated
     }
   }
   val sumMessages = new SumOfMessages(params, deg + 1)

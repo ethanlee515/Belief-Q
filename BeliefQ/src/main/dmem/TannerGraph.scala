@@ -104,4 +104,5 @@ class TannerGraph[V, C](
   }
   val cToVDelays = checks.values.maxBy(_.cToVDelays).cToVDelays
   val sumMessageDelays = variables.values.maxBy(_.sumMessageDelays).sumMessageDelays
+  val bias_delays = variables.values.maxBy(_.bias_delays).bias_delays
 }
