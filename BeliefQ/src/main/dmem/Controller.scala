@@ -15,7 +15,6 @@ class Controller[V, C](graph: TannerGraph[V, C]) extends Component {
   // take max over all delays...
   val counter = Reg(UInt(8 bits)) init(0)
   // hmmmm lots of boilerplate
-  // also missing a few more still, with the DMem stuff and whatnot
   switch(state) {
     is(State.idle) {
       when(start) {
@@ -26,7 +25,6 @@ class Controller[V, C](graph: TannerGraph[V, C]) extends Component {
       state := State.start_computing_cToV
     }
     is(State.start_computing_bias) {
-      // TODO is this actually single-cycle?
       state := State.computing_bias
       counter := 1
     }

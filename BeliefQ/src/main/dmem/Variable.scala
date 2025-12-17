@@ -27,16 +27,8 @@ class Variable(params: BeliefQParams, deg: Int, gamma_in: BigDecimal) extends Co
     gamma := gamma_in
     gamma_compl := 1 - gamma_in
   }
-  //when(state === State.start_computing_bias) {
-    /*
-    when(iter0) {
-      bias := prior
-    } otherwise {
-    */
-    biasL := (gamma_compl * prior).truncated
-    biasR := (gamma * llr).truncated
-    //}
-  //}
+  biasL := (gamma_compl * prior).truncated
+  biasR := (gamma * llr).truncated
   when(state === State.computing_bias) {
     when(iter0) {
       bias := prior
