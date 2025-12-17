@@ -3,6 +3,7 @@ package test
 
 import beliefq.vanilla._
 import beliefq.dmem._
+import beliefq.relay._
 import spinal.core._
 import spinal.lib._
 import spinal.lib.eda.bench.{Report, Rtl}
@@ -46,4 +47,11 @@ object VivadoBenchDmem extends App {
     SpinalVerilog(new DMemBP(params, var_labels, chk_labels, SimData.edges, SimData.gammas))
   )
   Bench(List(rtl), XilinxRfsocTarget(500 MHz), "./build/")
+}
+
+object RelayVerilog extends App {
+  val params = new BeliefQParams()
+  val var_labels = (0 until SimData.num_vars).toSet
+  val chk_labels = (0 until SimData.num_checks).toSet
+  SpinalVerilog(new Relay(params, var_labels, chk_labels, SimData.edges))
 }
