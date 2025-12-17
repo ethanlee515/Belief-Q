@@ -11,9 +11,14 @@ class TwoMins3(params: BeliefQParams) extends Component {
   val min1, min2 = out port unsigned_msg_t()
   val id_min1, id_min2 = out port UInt(3 bits)
   // logic
+  /*
   val lt01 = RegNext(data(0) < data(1))
   val lt02 = RegNext(data(0) < data(2))
   val lt12 = RegNext(data(1) < data(2))
+  */
+  val lt01 = data(0) < data(1)
+  val lt02 = data(0) < data(2)
+  val lt12 = data(1) < data(2)
   when(lt01 && lt02) {
     min1 := data(0)
     id_min1 := ids(0)
@@ -70,6 +75,17 @@ class TwoMins6(params: BeliefQParams) extends Component {
   val right_id1 = RegNext(right.id_min1)
   val right_id2 = RegNext(right.id_min2)
   val is_left = RegNext(left_min1 < right_min1)
+  /*
+  val left_min1 = left.min1
+  val left_min2 = left.min2
+  val left_id1 = left.id_min1
+  val left_id2 = left.id_min2
+  val right_min1 = right.min1
+  val right_min2 = right.min2
+  val right_id1 = right.id_min1
+  val right_id2 = right.id_min2
+  val is_left = left_min1 < right_min1
+  */
   when(is_left) {
     min1 := left_min1
     id_min1 := left_id1

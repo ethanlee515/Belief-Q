@@ -82,9 +82,12 @@ class CToV(params: BeliefQParams, deg: Int) extends Component {
   val pipeline = Builder(List(
     StageLink(parsingStage, twoMinsStage1),
     StageLink(twoMinsStage1, twoMinsStageExtra1),
+    /*
     StageLink(twoMinsStageExtra1, twoMinsStageExtra2),
     StageLink(twoMinsStageExtra2, twoMinsStage2),
+    */
+    StageLink(twoMinsStageExtra1, twoMinsStage2),
     StageLink(twoMinsStage2, rsSelectionStage),
     StageLink(rsSelectionStage, outputStage)))
-  val delays = 6
+  val delays = 5
 }

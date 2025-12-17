@@ -45,5 +45,5 @@ object VivadoBenchDmem extends App {
   val rtl = Rtl(
     SpinalVerilog(new DMemBP(params, var_labels, chk_labels, SimData.edges, SimData.gammas))
   )
-  Bench(List(rtl), XilinxRfsocTarget(600 MHz), "./build/")
+  Bench(List(rtl), XilinxRfsocTarget(500 MHz), "./build/")
 }
