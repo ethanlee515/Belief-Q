@@ -55,3 +55,13 @@ object RelayVerilog extends App {
   val chk_labels = (0 until SimData.num_checks).toSet
   SpinalVerilog(new Relay(params, var_labels, chk_labels, SimData.edges))
 }
+
+object VivadoBenchRelay extends App {
+  val params = new BeliefQParams()
+  val var_labels = (0 until SimData.num_vars).toSet
+  val chk_labels = (0 until SimData.num_checks).toSet
+  val rtl = Rtl(
+    SpinalVerilog(new Relay(params, var_labels, chk_labels, SimData.edges))
+  )
+  Bench(List(rtl), XilinxRfsocTarget(500 MHz), "./build/")
+}
