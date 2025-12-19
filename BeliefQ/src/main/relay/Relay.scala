@@ -33,20 +33,28 @@ class Relay[V, F](params: BeliefQParams,
   val outputs = out port Flow(BeliefQOutputs(var_labels))
   val graph = new TannerGraph(params, var_labels, chk_labels, edges)
   val controller = new Controller(params, graph)
+  val quality_eval = new QualityEval(params, var_labels)
+  val failed = out port Bool()
+  failed := (controller.state === State.failed)
   inputs.ready := (controller.state === State.idle)
   val delayed_inputs_valid = Reg(Bool()) init(False)
   delayed_inputs_valid := inputs.valid
   controller.start := delayed_inputs_valid
   for(v <- var_labels) {
     graph.priors_in(v) := cached_initial_priors(v)
+    quality_eval.initial_priors(v) := cached_initial_priors(v)
   }
   for(c <- chk_labels) {
     graph.in_syndromes(c) := cached_syndromes(c)
   }
   graph.state := controller.state
   controller.converged := graph.converged
-  outputs.valid := (controller.state === State.result_valid)
+  quality_eval.corrections_in_valid := (controller.state === State.result_valid)
   for(v <- var_labels) {
-    outputs.corrections(v) := graph.corrections(v)
+    quality_eval.corrections_in(v) := graph.corrections(v)
+  }
+  outputs.valid := (controller.state === State.idle) & (quality_eval.corrections_out_valid)
+  for(v <- var_labels) {
+    outputs.corrections(v) := quality_eval.corrections_out(v)
   }
 }
