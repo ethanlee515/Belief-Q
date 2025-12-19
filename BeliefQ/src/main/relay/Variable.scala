@@ -3,7 +3,6 @@ package relay
 
 import spinal.core._
 import spinal.lib._
-import beliefq.dmem.State
 
 class Variable(params: BeliefQParams, deg: Int) extends Component {
   import params._

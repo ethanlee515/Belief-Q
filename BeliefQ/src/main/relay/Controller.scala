@@ -5,26 +5,32 @@ package relay
 
 import spinal.core._
 import spinal.lib._
-import beliefq.dmem.State
-import beliefq.dmem.Check
 
-class Controller[V, C](graph: TannerGraph[V, C]) extends Component {
+class Controller[V, C](params: BeliefQParams, graph: TannerGraph[V, C]) extends Component {
+  import params._
   val start = in port Bool()
   val state = out port Reg(State()) init(State.idle)
   state.addAttribute("MAX_FANOUT", 16)
   val converged = in port Bool()
-  // TODO Don't actually need 8 bits here
-  // take max over all delays...
+  // For delays
   val counter = Reg(UInt(8 bits)) init(0)
+  val num_iters = Reg(UInt(8 bits)) init(0)
+  val num_sols = out port Reg(UInt(8 bits)) init(0)
+  val num_legs = Reg(UInt(8 bits)) init(0)
   // hmmmm lots of boilerplate
   switch(state) {
     is(State.idle) {
       when(start) {
+        counter := 0
+        num_iters := 0
+        num_sols := 0
+        num_legs := 0
         state := State.loading_inputs
       }
     }
     is(State.loading_inputs) {
-      state := State.start_computing_cToV
+      // TODO optimize this "extra cycle" away
+      state := State.rerandomize_weights
     }
     is(State.start_computing_bias) {
       state := State.computing_bias
@@ -56,10 +62,14 @@ class Controller[V, C](graph: TannerGraph[V, C]) extends Component {
     }
     is(State.checking_decision) {
       when(converged) {
-        // Result is either valid, or need to restart
+        num_sols := num_sols + 1
         state := State.result_valid
-      } otherwise {
+      } elsewhen(num_iters < max_iters) {
         state := State.start_computing_cToV
+      } elsewhen(num_legs === max_legs) {
+        state := State.failed
+      } otherwise {
+        state := State.rerandomize_weights
       }
     }
     is(State.start_computing_cToV) {
@@ -69,12 +79,23 @@ class Controller[V, C](graph: TannerGraph[V, C]) extends Component {
     is(State.computing_cToV) {
       when(counter === graph.cToVDelays) {
         state := State.start_computing_bias
-        // TODO update prior and stuff?
       } otherwise {
         counter := counter + 1
       }
     }
     is(State.result_valid) {
+      when(num_legs === max_legs || num_sols === max_sols) {
+        state := State.idle
+      } otherwise {
+        state := State.rerandomize_weights
+      }
+    }
+    is(State.rerandomize_weights) {
+      state := State.start_computing_cToV
+      num_legs := num_legs + 1
+      num_iters := 0
+    }
+    is(State.failed) {
       state := State.idle
     }
   }

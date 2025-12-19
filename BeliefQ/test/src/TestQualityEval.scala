@@ -16,8 +16,10 @@ object TestQualityEval extends TestSuite {
     val params = new BeliefQParams(8, 8)
 
     test("Quality Evaluation") {
+      println("Quality evaluation test...")
       val var_labels = Set(11, 22, 33, 44, 55, 66)
       SimConfig.compile { new QualityEval(params, var_labels) }.doSim { dut =>
+        dut.corrections_in_valid #= false
         dut.initial_priors(11) #= 1
         dut.initial_priors(22) #= 2
         dut.initial_priors(33) #= 3
@@ -40,10 +42,31 @@ object TestQualityEval extends TestSuite {
         dut.corrections_in(66) #= false
         cd.waitSampling()
         dut.corrections_in_valid #= false
-        for(i <- 0 until 50) {
-          cd.waitSampling()
-        }
-        assert(dut.best_decoding_quality.toBigDecimal == 8)
+        dut.corrections_in(11) #= false
+//        println("Quality evaluation test: waiting for first convergence...")
+        val converged = !(cd.waitSamplingWhere(30) { dut.corrections_out_valid.toBoolean })
+        assert(converged)
+//        println("Quality evaluation test: first convergence...")
+        val res1 = dut.best_decoding_quality.toBigDecimal
+        assert(res1 == 8)
+        cd.waitSampling()
+        cd.waitSampling()
+        cd.waitSampling()
+        dut.corrections_in_valid #= true
+        dut.corrections_in(11) #= true
+        dut.corrections_in(22) #= true
+        dut.corrections_in(33) #= false
+        dut.corrections_in(44) #= false
+        dut.corrections_in(55) #= false
+        dut.corrections_in(66) #= false
+        cd.waitSampling()
+        dut.corrections_in_valid #= false
+//        println("Quality evaluation test: waiting for second convergence...")
+        val converged2 = !(cd.waitSamplingWhere(30) { dut.corrections_out_valid.toBoolean })
+        assert(converged2)
+//        println("Quality evaluation test: second convergence.")
+        val res2 = dut.best_decoding_quality.toBigDecimal
+        assert(res2 == 3)
       }
     }
   }

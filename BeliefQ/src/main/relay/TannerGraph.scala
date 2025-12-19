@@ -3,8 +3,6 @@ package relay
 
 import spinal.core._
 import spinal.lib._
-import beliefq.dmem.Check
-import beliefq.dmem.State
 
 // Set of edges is fine
 // No need for the sparse matrix formalism

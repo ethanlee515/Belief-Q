@@ -17,33 +17,27 @@ class QualityEval[V](params: BeliefQParams, var_labels: Set[V]) extends Componen
       v -> (in port Bool())
     }
   }.toMap
+  val current_corrections = {
+    for(v <- var_labels) yield {
+      v -> Reg(Bool())
+    }
+  }.toMap
   val corrections_in_valid = in Bool()
-  /*
   val corrections_out = {
     for(v <- var_labels) yield {
-      v -> (out port Bool())
+      v -> (out port Reg(Bool()) init(False))
     }
   }.toMap
   val corrections_out_valid = out Bool()
-  */
-  val best_decoding_quality = out port Reg(message_t())
-  /* -- logic -- */
+  val best_decoding_quality = out port Reg(message_t()) init(unsigned_msg_t().maxValue)
+  /* -- internal data -- */
   val vars_seq = var_labels.toSeq
   val len = vars_seq.length
-  val sumOfMessages = new SumOfMessages(params, len)
-  val delays = sumOfMessages.delays + 2
-  val counter = Reg(UInt(8 bits))
-  when(corrections_in_valid) {
-    counter := 1
-  } elsewhen(counter < sumOfMessages.delays) {
-    counter := counter + 1
-  } otherwise {
-    counter := 0
-    // TODO
-    best_decoding_quality := sumOfMessages.result
-  }
-
+  val counter = Reg(UInt(8 bits)) init(0)
   val filtered_messages = Vec.fill(len)(Reg(message_t()))
+  val sumOfMessages = new SumOfMessages(params, len)
+  /* -- logic -- */
+  corrections_out_valid := (counter === 0)
   for(i <- 0 until vars_seq.length) {
     val v = vars_seq(i)
     when(corrections_in(v)) {
@@ -53,4 +47,21 @@ class QualityEval[V](params: BeliefQParams, var_labels: Set[V]) extends Componen
     }
   }
   sumOfMessages.messages := filtered_messages
+  when(corrections_in_valid) {
+    counter := 1
+    for(v <- var_labels) {
+      current_corrections(v) := corrections_in(v)
+    }
+  } elsewhen(counter < sumOfMessages.delays + 1) {
+    counter := counter + 1
+  } elsewhen(counter === sumOfMessages.delays + 1) {
+    counter := 0
+    when(sumOfMessages.result < best_decoding_quality) {
+      best_decoding_quality := sumOfMessages.result
+      for(v <- var_labels) {
+        corrections_out(v) := current_corrections(v)
+      }
+    }
+  }
+  val delays = sumOfMessages.delays + 2
 }

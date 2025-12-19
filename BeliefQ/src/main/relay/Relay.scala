@@ -3,7 +3,6 @@ package relay
 
 import spinal.core._
 import spinal.lib._
-import beliefq.dmem.State
 
 class Relay[V, F](params: BeliefQParams,
     var_labels: Set[V],
@@ -33,7 +32,7 @@ class Relay[V, F](params: BeliefQParams,
   }
   val outputs = out port Flow(BeliefQOutputs(var_labels))
   val graph = new TannerGraph(params, var_labels, chk_labels, edges)
-  val controller = new Controller(graph)
+  val controller = new Controller(params, graph)
   inputs.ready := (controller.state === State.idle)
   val delayed_inputs_valid = Reg(Bool()) init(False)
   delayed_inputs_valid := inputs.valid
