@@ -1,6 +1,7 @@
 package beliefq
 package relay
 
+import scala.util.Random
 import spinal.core._
 import spinal.lib._
 
@@ -11,6 +12,7 @@ class TannerGraph[V, C](
     var_labels: Set[V],
     chk_labels: Set[C],
     edge_labels: Set[(V, C)]) extends Component {
+  val random = new Random()
   import params._
   /* -- IO -- */
   val state = in port State()
@@ -43,7 +45,8 @@ class TannerGraph[V, C](
   import geometry._
   val variables = {
     for(v <- var_labels) yield {
-      val variable = new Variable(params, deg_var(v))
+      val seed = BigInt(64, random)
+      val variable = new Variable(params, deg_var(v), seed)
       variable.state := state
       variable.prior_in := priors_in(v)
       variable.iter0 := iter0

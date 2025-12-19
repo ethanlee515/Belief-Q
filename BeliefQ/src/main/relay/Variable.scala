@@ -1,10 +1,11 @@
 package beliefq
 package relay
 
+import scala.util.Random
 import spinal.core._
 import spinal.lib._
 
-class Variable(params: BeliefQParams, deg: Int) extends Component {
+class Variable(params: BeliefQParams, deg: Int, seed: BigInt) extends Component {
   import params._
   /* -- IO -- */
   val fromC = in port Vec.fill(deg)(message_t())
@@ -22,6 +23,15 @@ class Variable(params: BeliefQParams, deg: Int) extends Component {
   val bias = Reg(message_t())
   val gamma = Reg(gamma_t())
   val gamma_compl = Reg(gamma_t())
+  val rng = Lfsr64(params, seed)
+  //val rng_norm1 = Reg(message_t())
+//  rng_norm1 := 
+/*
+  when(state === State.rerandomize_weights) {
+
+    gamma := -0.125 + rng.io.random
+  }
+  */
   when(state === State.loading_inputs) {
     prior := prior_in
     gamma := BigDecimal(0) //TODO
