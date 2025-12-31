@@ -60,9 +60,7 @@ object RelaySim extends App {
     dut.inputs.valid #= false
     for(t <- 0 until 100) {
       val state = dut.controller.state.toEnum
-      if(state != State.result_valid) {
-        println(f"t = $t, state = ${state}")
-      }
+      println(f"t = $t, state = ${state}, outputs valid = ${dut.outputs.valid.toBoolean}")
       /*
       if(state == State.start_computing_cToV) {
         for(e <- geo.edges) {

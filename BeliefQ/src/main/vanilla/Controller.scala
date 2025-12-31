@@ -39,9 +39,11 @@ class Controller[V, C](graph: TannerGraph[V, C]) extends Component {
     is(State.variables_decide) {
       state := State.checking_decision
     }
+    /*
     is(State.checks_decide) {
       state := State.checking_decision
     }
+    */
     is(State.checking_decision) {
       when(converged) {
         // Result is either valid, or need to restart

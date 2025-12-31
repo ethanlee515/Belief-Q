@@ -49,6 +49,12 @@ object TestQualityEval extends TestSuite {
 //        println("Quality evaluation test: first convergence...")
         val res1 = dut.best_decoding_quality.toBigDecimal
         assert(res1 == 8)
+        assert(dut.corrections_out(11).toBoolean)
+        assert(dut.corrections_out(22).toBoolean)
+        assert(!dut.corrections_out(33).toBoolean)
+        assert(!dut.corrections_out(44).toBoolean)
+        assert(dut.corrections_out(55).toBoolean)
+        assert(!dut.corrections_out(66).toBoolean)
         cd.waitSampling()
         cd.waitSampling()
         cd.waitSampling()
@@ -61,12 +67,19 @@ object TestQualityEval extends TestSuite {
         dut.corrections_in(66) #= false
         cd.waitSampling()
         dut.corrections_in_valid #= false
+        dut.corrections_in(11) #= false
 //        println("Quality evaluation test: waiting for second convergence...")
         val converged2 = !(cd.waitSamplingWhere(30) { dut.corrections_out_valid.toBoolean })
         assert(converged2)
 //        println("Quality evaluation test: second convergence.")
         val res2 = dut.best_decoding_quality.toBigDecimal
         assert(res2 == 3)
+        assert(dut.corrections_out(11).toBoolean)
+        assert(dut.corrections_out(22).toBoolean)
+        assert(!dut.corrections_out(33).toBoolean)
+        assert(!dut.corrections_out(44).toBoolean)
+        assert(!dut.corrections_out(55).toBoolean)
+        assert(!dut.corrections_out(66).toBoolean)
       }
     }
   }

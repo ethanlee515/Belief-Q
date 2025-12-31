@@ -12,5 +12,5 @@ case class BeliefQParams(
   val gamma_t = HardType(AFix.SQ(2 bits, gamma_fractional_precision bits))
   val max_legs = 5
   val max_sols = 2
-  val max_iters = 6
+  val max_iters = 12
 }

@@ -49,6 +49,7 @@ class Relay[V, F](params: BeliefQParams,
   }
   graph.state := controller.state
   controller.converged := graph.converged
+  quality_eval.rst := (controller.state === State.loading_inputs)
   quality_eval.corrections_in_valid := (controller.state === State.result_valid)
   for(v <- var_labels) {
     quality_eval.corrections_in(v) := graph.corrections(v)

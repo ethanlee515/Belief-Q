@@ -57,17 +57,24 @@ class Controller[V, C](params: BeliefQParams, graph: TannerGraph[V, C]) extends 
     is(State.variables_decide) {
       state := State.checking_decision
     }
+    /*
     is(State.checks_decide) {
       state := State.checking_decision
     }
+    */
     is(State.checking_decision) {
       when(converged) {
         num_sols := num_sols + 1
         state := State.result_valid
       } elsewhen(num_iters < max_iters) {
+        num_iters := num_iters + 1
         state := State.start_computing_cToV
       } elsewhen(num_legs === max_legs) {
-        state := State.failed
+        when(num_sols === 0) {
+          state := State.failed
+        } otherwise {
+          state := State.idle
+        }
       } otherwise {
         state := State.rerandomize_weights
       }

@@ -30,6 +30,7 @@ class QualityEval[V](params: BeliefQParams, var_labels: Set[V]) extends Componen
   }.toMap
   val corrections_out_valid = out Bool()
   val best_decoding_quality = out port Reg(message_t()) init(unsigned_msg_t().maxValue)
+  val rst = in Bool()
   /* -- internal data -- */
   val vars_seq = var_labels.toSeq
   val len = vars_seq.length
@@ -37,6 +38,10 @@ class QualityEval[V](params: BeliefQParams, var_labels: Set[V]) extends Componen
   val filtered_messages = Vec.fill(len)(Reg(message_t()))
   val sumOfMessages = new SumOfMessages(params, len)
   /* -- logic -- */
+  when(rst) {
+    best_decoding_quality := unsigned_msg_t().maxValue
+    counter := 0
+  }
   corrections_out_valid := (counter === 0)
   for(i <- 0 until vars_seq.length) {
     val v = vars_seq(i)
@@ -52,7 +57,7 @@ class QualityEval[V](params: BeliefQParams, var_labels: Set[V]) extends Componen
     for(v <- var_labels) {
       current_corrections(v) := corrections_in(v)
     }
-  } elsewhen(counter < sumOfMessages.delays + 1) {
+  } elsewhen(counter =/= 0 && counter < sumOfMessages.delays + 1) {
     counter := counter + 1
   } elsewhen(counter === sumOfMessages.delays + 1) {
     counter := 0

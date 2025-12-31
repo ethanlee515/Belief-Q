@@ -9,7 +9,7 @@ object State extends SpinalEnum {
     start_computing_bias, computing_bias,
     start_summing_messages, summing_messages,
     variables_decide,
-    checks_decide,
+    //checks_decide,
     checking_decision,
     start_computing_cToV, computing_cToV,
     result_valid, rerandomize_weights,
