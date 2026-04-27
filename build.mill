@@ -20,7 +20,7 @@ object BeliefQ extends ScalaModule {
   }
 }
 
-object Framework extends ScalaModule {
+object Refactor extends ScalaModule {
   def scalaVersion = "2.13.16"
   def ivyDeps = Agg(
     ivy"com.github.spinalhdl::spinalhdl-core:1.12.2",

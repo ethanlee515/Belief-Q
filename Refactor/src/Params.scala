@@ -2,7 +2,6 @@ package beliefq
 
 import spinal.core._
 
-/*
 case class BeliefQParams(
   message_integral_size : Int = 8,
   message_fractional_precision : Int = 4,
@@ -15,4 +14,3 @@ case class BeliefQParams(
   val max_sols = 2
   val max_iters = 12
 }
-*/

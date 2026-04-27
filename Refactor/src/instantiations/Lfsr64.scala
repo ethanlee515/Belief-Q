@@ -4,7 +4,6 @@ package relay
 import spinal.core._
 import spinal.lib._
 
-/*
 case class Lfsr64(params: BeliefQParams, seed: BigInt) extends Component {
   import params._
   val lfsr = Reg(Bits(64 bits)) init seed
@@ -13,4 +12,3 @@ case class Lfsr64(params: BeliefQParams, seed: BigInt) extends Component {
   val rng_norm1 = out port AFix.UQ(0 bits, message_fractional_precision bits)
   rng_norm1.assignFromBits(lfsr(0 until message_fractional_precision))
 }
-*/
