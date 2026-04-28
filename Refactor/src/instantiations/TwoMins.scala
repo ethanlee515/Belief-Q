@@ -1,10 +1,14 @@
 package beliefq
+package relay
 
 import spinal.core._
 import spinal.lib._
 
-class TwoMins3(params: BeliefQParams) extends Component {
+class TwoMins3(
+  params: BeliefQParams,
+  relayparams: RelayParams) extends Component {
   import params._
+  import relayparams._
   // IO
   val data = in port Vec.fill(3)(unsigned_msg_t())
   val ids = in port Vec.fill(3)(UInt(3 bits))
@@ -52,14 +56,15 @@ class TwoMins3(params: BeliefQParams) extends Component {
   }
 }
 
-class TwoMins6(params: BeliefQParams) extends Component {
+class TwoMins6(params: BeliefQParams, relayparams: RelayParams) extends Component {
   import params._
+  import relayparams._
   // IO
   val data = in port Vec.fill(6)(unsigned_msg_t())
   val min1, min2 = out port unsigned_msg_t()
   val id_min1, id_min2 = out port UInt(3 bits)
   // logic
-  val left, right = new TwoMins3(params)
+  val left, right = new TwoMins3(params, relayparams)
   for(i <- 0 until 3) {
     left.ids(i) := i
     right.ids(i) := i + 3
@@ -75,17 +80,6 @@ class TwoMins6(params: BeliefQParams) extends Component {
   val right_id1 = RegNext(right.id_min1)
   val right_id2 = RegNext(right.id_min2)
   val is_left = RegNext(left_min1 < right_min1)
-  /*
-  val left_min1 = left.min1
-  val left_min2 = left.min2
-  val left_id1 = left.id_min1
-  val left_id2 = left.id_min2
-  val right_min1 = right.min1
-  val right_min2 = right.min2
-  val right_id1 = right.id_min1
-  val right_id2 = right.id_min2
-  val is_left = left_min1 < right_min1
-  */
   when(is_left) {
     min1 := left_min1
     id_min1 := left_id1
@@ -109,11 +103,14 @@ class TwoMins6(params: BeliefQParams) extends Component {
   }
 }
 
-class TwoMins(params: BeliefQParams, deg: Int) extends Component {
+class TwoMins(params: BeliefQParams,
+  relayparams: RelayParams,
+  deg: Int) extends Component {
   require(deg <= 6)
   import params._
+  import relayparams._
   val data = in port Vec.fill(deg)(unsigned_msg_t())
-  val min6 = new TwoMins6(params)
+  val min6 = new TwoMins6(params, relayparams)
   val min1, min2 = out port unsigned_msg_t()
   val id_min1, id_min2 = out port UInt(3 bits)
   for(i <- 0 until deg) {

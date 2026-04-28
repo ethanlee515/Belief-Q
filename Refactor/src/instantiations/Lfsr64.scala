@@ -4,8 +4,12 @@ package relay
 import spinal.core._
 import spinal.lib._
 
-case class Lfsr64(params: BeliefQParams, seed: BigInt) extends Component {
+case class Lfsr64(
+    params: BeliefQParams,
+    relayparams: RelayParams,
+    seed: BigInt) extends Component {
   import params._
+  import relayparams._
   val lfsr = Reg(Bits(64 bits)) init seed
   val feedback = lfsr(63) ^ lfsr(62) ^ lfsr(60) ^ lfsr(59)
   lfsr := lfsr(62 downto 0) ## feedback

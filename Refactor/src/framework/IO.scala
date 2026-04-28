@@ -4,14 +4,15 @@ import spinal.core._
 import spinal.lib._
 
 
-case class BeliefQInputs[V, F](params: BeliefQParams,
+case class BeliefQInputs[V, F](
+  params: BeliefQParams,
   var_labels: Set[V],
   chk_labels: Set[F],
 ) extends Bundle {
   import params._
   val initial_priors = {
     for(v <- var_labels) yield {
-      v -> (in port message_t())
+      v -> (in port initial_priors_t())
     }
   }.toMap
   val syndromes = {

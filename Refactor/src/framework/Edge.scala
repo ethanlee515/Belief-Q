@@ -5,31 +5,27 @@ import spinal.lib._
 
 class Edge(params: BeliefQParams) extends Component {
   import params._
-//  val state = in port State()
   val loading_inputs = in port Bool()
-  val vToC = Reg(message_t)
-  val cToV = Reg(message_t)
-  val fromC = in port Flow(message_t)
-  val fromV = in port Flow(message_t)
-  val toC = out port message_t
-  val toV = out port message_t
+  val var_msg_t = HardType(Bits(var_msg_len bits))
+  val chk_msg_t = HardType(Bits(chk_msg_len bits))
+  val vToC = Reg(var_msg_t)
+  val cToV = Reg(chk_msg_t)
+  val fromC = in port Flow(chk_msg_t)
+  val fromV = in port Flow(var_msg_t)
+  val toC = out port var_msg_t
+  val toV = out port chk_msg_t
   val decision_in = in port Bool()
   val decision = out port Bool()
   decision := decision_in
   when(loading_inputs) {
-    cToV := BigDecimal(0)
+    cToV := B(0)
   }
-  when(/* state === State.computing_cToV && */ fromC.valid) {
+  when(fromC.valid) {
     cToV := fromC.payload
   }
-  when(/* state === State.computing_vToC && */ fromV.valid) {
+  when(fromV.valid) {
     vToC := fromV.payload
   }
   toC := vToC
   toV := cToV
-  /*
-  when(state === State.loading_inputs) {
-    vToC := BigDecimal(0)
-  }
-  */
 }

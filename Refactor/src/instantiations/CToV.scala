@@ -1,28 +1,39 @@
 package beliefq
+package relay
 
 import spinal.core._
 import spinal.lib._
 import spinal.lib.misc.pipeline._
 
-case class CToVInputs(params: BeliefQParams, deg: Int) extends Bundle {
+case class CToVInputs(
+    params: BeliefQParams,
+    deg: Int) extends Bundle {
   import params._
   val syndrome = Bool()
-  val messages = Vec.fill(deg)(message_t())
+  val raw_messages = Vec.fill(deg)(Bits(var_msg_len bits))
 }
 
-class CToV(params: BeliefQParams, deg: Int) extends Component {
+class CToV(
+  params: BeliefQParams,
+  relayparams: RelayParams,
+  deg: Int) extends Component {
   import params._
+  import relayparams._
   /* -- IO -- */
   val inputs = in port Flow(CToVInputs(params, deg))
   val output = out port Flow(Vec.fill(deg)(message_t()))
   /* -- logic -- */
+  val messages = Vec.fill(deg)(message_t())
+  for(i <- 0 until deg) {
+    messages(i).assignFromBits(inputs.payload.raw_messages(i))
+  }
   val parsingStage = Node()
   val a1 = new parsingStage.Area {
     val abs_m = Vec.fill(deg)(unsigned_msg_t())
     val is_neg = Vec.fill(deg)(Bool())
     val s = Bool()
     for(i <- 0 until deg) {
-      val m = inputs.payload.messages(i)
+      val m = messages(i)
       val mt = unsigned_msg_t()
       mt := m.truncated
       val is_negative = m.isNegative
@@ -38,7 +49,7 @@ class CToV(params: BeliefQParams, deg: Int) extends Component {
   }
   val twoMinsStage1 = Node()
   val a2 = new twoMinsStage1.Area {
-    val twomins = new TwoMins(params, deg)
+    val twomins = new TwoMins(params, relayparams, deg)
     twomins.data := a1.abs_messages
     val xor_signs = insert(
       a1.sign_parity ^ a1.is_negatives.asBits.xorR)

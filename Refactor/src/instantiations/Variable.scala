@@ -5,17 +5,28 @@ import scala.util.Random
 import spinal.core._
 import spinal.lib._
 
-class Variable(params: BeliefQParams, deg: Int, seed: BigInt) extends Component {
+class Variable(
+    params: BeliefQParams,
+    relayparams: RelayParams,
+    deg: Int, seed: BigInt) extends Component {
   import params._
+  import relayparams._
   /* -- IO -- */
-  val fromC = in port Vec.fill(deg)(message_t())
-  val toC = out port Vec.fill(deg)(Flow(message_t))
+  val fromC_raw = in port Vec.fill(deg)(Bits(chk_msg_len bits))
+  val toC_raw = out port Vec.fill(deg)(Flow(Bits(var_msg_len bits)))
   val iter0 = in port Bool()
   val prior_in = in port message_t()
   val state = in port State()
   val decision = out port Reg(Bool())
   val bias_delays = 1
   /* -- logic -- */
+  val fromC = Vec.fill(deg)(message_t())
+  val toC = Vec.fill(deg)(Flow(message_t))
+  for(i <- 0 until deg) {
+    fromC(i).assignFromBits(fromC_raw(i))
+    toC_raw(i).payload := toC(i).payload.asBits 
+    toC_raw(i).valid := toC(i).valid
+  }
   val llr = Reg(message_t())
   val prior = Reg(message_t())
   val biasL = Reg(message_t())
@@ -23,7 +34,7 @@ class Variable(params: BeliefQParams, deg: Int, seed: BigInt) extends Component 
   val bias = Reg(message_t())
   val gamma = Reg(gamma_t())
   val gamma_compl = Reg(gamma_t())
-  val rng = Lfsr64(params, seed)
+  val rng = Lfsr64(params, relayparams, seed)
   val five = message_t()
   five := BigDecimal("5")
   val rng_normed = Reg(message_t())
@@ -50,7 +61,7 @@ class Variable(params: BeliefQParams, deg: Int, seed: BigInt) extends Component 
       bias := (biasL + biasR).truncated
     }
   }
-  val sumMessages = new SumOfMessages(params, deg + 1)
+  val sumMessages = new SumOfMessages(params, relayparams, deg + 1)
   val sumMessageDelays = sumMessages.delays
   for(i <- 0 until deg) {
     sumMessages.messages(i) := fromC(i)

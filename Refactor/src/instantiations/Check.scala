@@ -4,17 +4,21 @@ package relay
 import spinal.core._
 import spinal.lib._
 
-class Check(params: BeliefQParams, deg: Int) extends Component {
+class Check(
+  params: BeliefQParams,
+  relayparams: RelayParams,
+  deg: Int) extends Component {
   import params._
+  import relayparams._
   val state = in port State()
-  val fromV = in port Vec.fill(deg)(message_t())
+  val fromV = in port Vec.fill(deg)(Bits(var_msg_len bits))
   val in_syndrome = in port Bool()
   val syndrome = Reg(Bool())
-  val toV = out port Vec.fill(deg)(Flow(message_t))
-  val cToV = new CToV(params, deg)
+  val toV = out port Vec.fill(deg)(Flow(Bits(chk_msg_len bits)))
+  val cToV = new CToV(params, relayparams, deg)
   cToV.inputs.valid := (state === State.start_computing_cToV)
   cToV.inputs.payload.syndrome := syndrome
-  cToV.inputs.messages := fromV
+  cToV.inputs.raw_messages := fromV
   val cToVDelays = cToV.delays
   val neighbor_decisions = in port Vec.fill(deg)(Bool())
   val satisfied = out port Reg(Bool())
@@ -24,6 +28,6 @@ class Check(params: BeliefQParams, deg: Int) extends Component {
   }
   for(i <- 0 until deg) {
     toV(i).valid := cToV.output.valid
-    toV(i).payload := cToV.output.payload(i)
+    toV(i).payload := cToV.output.payload(i).asBits
   }
 }

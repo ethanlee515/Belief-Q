@@ -4,7 +4,8 @@ package relay
 import spinal.core._
 import spinal.lib._
 
-class Relay[V, F](params: BeliefQParams,
+class Relay[V, F](
+    params: BeliefQParams,
     var_labels: Set[V],
     chk_labels: Set[F],
     edges: Set[(V, F)],

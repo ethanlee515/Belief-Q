@@ -9,11 +9,13 @@ import spinal.lib._
 // No need for the sparse matrix formalism
 class TannerGraph[V, C](
     params: BeliefQParams,
+    relayparams: RelayParams,
     var_labels: Set[V],
     chk_labels: Set[C],
     edge_labels: Set[(V, C)]) extends Component {
   val random = new Random()
-  import params._
+  //import params._
+  import relayparams._
   /* -- IO -- */
   val state = in port State()
   val start = in port Bool()
@@ -41,12 +43,12 @@ class TannerGraph[V, C](
   when(state === State.checking_decision) {
     iter0 := False
   }
-  val geometry = new TannerGraphGeometry(/*params, */ var_labels, chk_labels, edge_labels)
+  val geometry = new TannerGraphGeometry(var_labels, chk_labels, edge_labels)
   import geometry._
   val variables = {
     for(v <- var_labels) yield {
       val seed = BigInt(64, random)
-      val variable = new Variable(params, deg_var(v), seed)
+      val variable = new Variable(params, relayparams, deg_var(v), seed)
       variable.state := state
       variable.prior_in := priors_in(v)
       variable.iter0 := iter0
@@ -55,7 +57,7 @@ class TannerGraph[V, C](
   }.toMap
   val checks = {
     for(f <- chk_labels) yield {
-      val check = new Check(params, deg_check(f))
+      val check = new Check(params, relayparams, deg_check(f))
       check.state := state
       check.in_syndrome := in_syndromes(f)
       f -> check
@@ -76,12 +78,12 @@ class TannerGraph[V, C](
       val edge_label = (v, checks(i))
       val edge = edges(edge_label)
       when(is_loading) {
-        edge.fromV.push(priors_in(v))
+        edge.fromV.push(priors_in(v).asBits)
       } otherwise {
-        edge.fromV << variable.toC(i)
+        edge.fromV << variable.toC_raw(i)
       }
       edge.decision_in := variable.decision
-      variable.fromC(i) := edge.toV
+      variable.fromC_raw(i) := edge.toV
     }
   }
   for(c <- chk_labels) {
