@@ -32,7 +32,10 @@ class Relay[V, F](
     }
   }
   val outputs = out port Flow(BeliefQOutputs(var_labels))
-  val graph = new TannerGraph(params, var_labels, chk_labels, edges)
+  val graph = new TannerGraph(params, var_labels, chk_labels, edges,
+    (params, deg, seed) => new Variable(params, deg, seed),
+    (params, deg) => new Check(params, deg)
+  )
   val controller = new Controller(params, graph)
   val quality_eval = new QualityEval(params, var_labels)
   val failed = out port Bool()
