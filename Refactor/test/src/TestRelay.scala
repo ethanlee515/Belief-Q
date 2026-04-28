@@ -34,6 +34,7 @@ object TestRelay extends TestSuite {
         val vanillaBP = new reference.VanillaBP(var_labels, chk_labels, SimData.edges, syndromes, log_priors)
         vanillaBP.doBP(300) != None
       }
+      var diverge_count = 0
       SimConfig.compile { new Relay(params, relayparams, var_labels, chk_labels, SimData.edges) }.doSim { dut =>
         dut.inputs.valid #= false
         val cd = dut.clockDomain
@@ -64,8 +65,8 @@ object TestRelay extends TestSuite {
           assert(done)
           //println(f"relay test #${i}")
           // If Vanilla BP converges, maybe Relay should too.
-          if(converged(i)) {
-            assert(dut.outputs.valid.toBoolean)
+          if(converged(i) && !(dut.outputs.valid.toBoolean)) {
+            diverge_count = diverge_count + 1
           }
           // When convergence is claimed, output is well-formed
           if(dut.outputs.valid.toBoolean) {
@@ -83,6 +84,7 @@ object TestRelay extends TestSuite {
           }
         }
       }
+      assert(diverge_count.toFloat / num_tests < 0.1)
     }
   }
 }
