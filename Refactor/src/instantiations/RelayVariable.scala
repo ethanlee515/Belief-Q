@@ -5,19 +5,19 @@ import scala.util.Random
 import spinal.core._
 import spinal.lib._
 
-class Variable(
+class RelayVariable(
     params: BeliefQParams,
-    deg: Int, seed: BigInt) extends Component {
+    deg: Int, seed: BigInt) extends Variable {
   val relayparams : RelayParams = params.asInstanceOf[RelayParams]
   import relayparams._
   /* -- IO -- */
-  val fromC_raw = in port Vec.fill(deg)(Bits(chk_msg_len bits))
-  val toC_raw = out port Vec.fill(deg)(Flow(Bits(var_msg_len bits)))
-  val iter0 = in port Bool()
-  val prior_in = in port message_t()
-  val state = in port State()
-  val decision = out port Reg(Bool())
-  val bias_delays = 1
+  override val fromC_raw = in port Vec.fill(deg)(Bits(chk_msg_len bits))
+  override val toC_raw = out port Vec.fill(deg)(Flow(Bits(var_msg_len bits)))
+  override val iter0 = in port Bool()
+  override val prior_in = in port message_t()
+  override val state = in port State()
+  override val decision = out port Reg(Bool())
+  override val bias_delays = 1
   /* -- logic -- */
   val fromC = Vec.fill(deg)(message_t())
   val toC = Vec.fill(deg)(Flow(message_t))
@@ -61,7 +61,7 @@ class Variable(
     }
   }
   val sumMessages = new SumOfMessages(relayparams, deg + 1)
-  val sumMessageDelays = sumMessages.delays
+  override val sumMessageDelays = sumMessages.delays
   for(i <- 0 until deg) {
     sumMessages.messages(i) := fromC(i)
   }
