@@ -4,6 +4,8 @@ package relay
 import spinal.core._
 import spinal.lib._
 
+// TODO control pipeline using parameters
+
 object State extends SpinalEnum {
   val idle, loading_inputs,
     start_computing_bias, computing_bias,
