@@ -5,11 +5,9 @@ import spinal.core._
 import spinal.lib._
 
 class QualityEval[V](
-  params: BeliefQParams,
-  relayparams: RelayParams,
+  params: RelayParams,
   var_labels: Set[V]) extends Component {
   import params._
-  import relayparams._
   /* -- IO -- */
   val initial_priors = {
     for(v <- var_labels) yield {
@@ -40,7 +38,7 @@ class QualityEval[V](
   val len = vars_seq.length
   val counter = Reg(UInt(8 bits)) init(0)
   val filtered_messages = Vec.fill(len)(Reg(message_t()))
-  val sumOfMessages = new SumOfMessages(params, relayparams, len)
+  val sumOfMessages = new SumOfMessages(params, len)
   /* -- logic -- */
   when(rst) {
     best_decoding_quality := unsigned_msg_t().maxValue

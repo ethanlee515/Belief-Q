@@ -7,9 +7,8 @@ import spinal.lib._
 
 class Variable(
     params: BeliefQParams,
-    relayparams: RelayParams,
     deg: Int, seed: BigInt) extends Component {
-  import params._
+  val relayparams : RelayParams = params.asInstanceOf[RelayParams]
   import relayparams._
   /* -- IO -- */
   val fromC_raw = in port Vec.fill(deg)(Bits(chk_msg_len bits))
@@ -34,7 +33,7 @@ class Variable(
   val bias = Reg(message_t())
   val gamma = Reg(gamma_t())
   val gamma_compl = Reg(gamma_t())
-  val rng = Lfsr64(params, relayparams, seed)
+  val rng = Lfsr64(relayparams, seed)
   val five = message_t()
   five := BigDecimal("5")
   val rng_normed = Reg(message_t())
@@ -61,7 +60,7 @@ class Variable(
       bias := (biasL + biasR).truncated
     }
   }
-  val sumMessages = new SumOfMessages(params, relayparams, deg + 1)
+  val sumMessages = new SumOfMessages(relayparams, deg + 1)
   val sumMessageDelays = sumMessages.delays
   for(i <- 0 until deg) {
     sumMessages.messages(i) := fromC(i)

@@ -6,16 +6,15 @@ import spinal.lib._
 
 class Check(
   params: BeliefQParams,
-  relayparams: RelayParams,
   deg: Int) extends Component {
-  import params._
+  val relayparams : RelayParams = params.asInstanceOf[RelayParams]
   import relayparams._
   val state = in port State()
   val fromV = in port Vec.fill(deg)(Bits(var_msg_len bits))
   val in_syndrome = in port Bool()
   val syndrome = Reg(Bool())
   val toV = out port Vec.fill(deg)(Flow(Bits(chk_msg_len bits)))
-  val cToV = new CToV(params, relayparams, deg)
+  val cToV = new CToV(relayparams, deg)
   cToV.inputs.valid := (state === State.start_computing_cToV)
   cToV.inputs.payload.syndrome := syndrome
   cToV.inputs.raw_messages := fromV

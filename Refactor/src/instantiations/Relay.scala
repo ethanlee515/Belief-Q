@@ -5,15 +5,13 @@ import spinal.core._
 import spinal.lib._
 
 class Relay[V, F](
-    params: BeliefQParams,
-    relayParams: RelayParams,
+    params: RelayParams,
     var_labels: Set[V],
     chk_labels: Set[F],
     edges: Set[(V, F)],
   ) extends Component {
   /* -- IO -- */
   import params._
-  import relayParams._
   val inputs = slave Stream(BeliefQInputs(params, var_labels, chk_labels))
   val cached_initial_priors = {
     for(v <- var_labels) yield {
@@ -34,9 +32,9 @@ class Relay[V, F](
     }
   }
   val outputs = out port Flow(BeliefQOutputs(var_labels))
-  val graph = new TannerGraph(params, relayParams, var_labels, chk_labels, edges)
-  val controller = new Controller(params, relayParams, graph)
-  val quality_eval = new QualityEval(params, relayParams, var_labels)
+  val graph = new TannerGraph(params, var_labels, chk_labels, edges)
+  val controller = new Controller(params, graph)
+  val quality_eval = new QualityEval(params, var_labels)
   val failed = out port Bool()
   failed := (controller.state === State.failed)
   inputs.ready := (controller.state === State.idle)

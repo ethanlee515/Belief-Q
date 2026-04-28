@@ -7,10 +7,8 @@ import spinal.core._
 import spinal.lib._
 
 class Controller[V, C](params: BeliefQParams,
-  relayParams: RelayParams,
   graph: TannerGraph[V, C]) extends Component {
   import params._
-  import relayParams._
   val start = in port Bool()
   val state = out port Reg(State()) init(State.idle)
   state.addAttribute("MAX_FANOUT", 16)

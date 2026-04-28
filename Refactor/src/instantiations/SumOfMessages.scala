@@ -5,11 +5,9 @@ import spinal.core._
 import spinal.lib._
 
 class SumOfMessages(
-    params: BeliefQParams,
-    relayparams: RelayParams,
+    params: RelayParams,
     n: Int) extends Component {
   import params._
-  import relayparams._
   val messages = in port Vec.fill(n)(message_t())
   val result = out port message_t()
   var delays = 1

@@ -6,7 +6,7 @@ import spinal.lib._
 import spinal.lib.misc.pipeline._
 
 case class CToVInputs(
-    params: BeliefQParams,
+    params: RelayParams,
     deg: Int) extends Bundle {
   import params._
   val syndrome = Bool()
@@ -14,11 +14,9 @@ case class CToVInputs(
 }
 
 class CToV(
-  params: BeliefQParams,
-  relayparams: RelayParams,
+  params: RelayParams,
   deg: Int) extends Component {
   import params._
-  import relayparams._
   /* -- IO -- */
   val inputs = in port Flow(CToVInputs(params, deg))
   val output = out port Flow(Vec.fill(deg)(message_t()))
@@ -49,7 +47,7 @@ class CToV(
   }
   val twoMinsStage1 = Node()
   val a2 = new twoMinsStage1.Area {
-    val twomins = new TwoMins(params, relayparams, deg)
+    val twomins = new TwoMins(params, deg)
     twomins.data := a1.abs_messages
     val xor_signs = insert(
       a1.sign_parity ^ a1.is_negatives.asBits.xorR)

@@ -28,14 +28,13 @@ object TestRelay extends TestSuite {
       }.toMap
     }
     test("Relay converges") {
-      val params = new BeliefQParams()
-      val relayparams = new RelayParams()
+      val params = new RelayParams()
       val converged = syndromes_batch.map { syndromes =>
         val vanillaBP = new reference.VanillaBP(var_labels, chk_labels, SimData.edges, syndromes, log_priors)
         vanillaBP.doBP(300) != None
       }
       var diverge_count = 0
-      SimConfig.compile { new Relay(params, relayparams, var_labels, chk_labels, SimData.edges) }.doSim { dut =>
+      SimConfig.compile { new Relay(params, var_labels, chk_labels, SimData.edges) }.doSim { dut =>
         dut.inputs.valid #= false
         val cd = dut.clockDomain
         cd.forkStimulus(10)

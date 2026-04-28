@@ -4,22 +4,14 @@ package relay
 import spinal.core._
 import spinal.lib._
 
-class TwoMins3(
-  params: BeliefQParams,
-  relayparams: RelayParams) extends Component {
+class TwoMins3(params: RelayParams) extends Component {
   import params._
-  import relayparams._
   // IO
   val data = in port Vec.fill(3)(unsigned_msg_t())
   val ids = in port Vec.fill(3)(UInt(3 bits))
   val min1, min2 = out port unsigned_msg_t()
   val id_min1, id_min2 = out port UInt(3 bits)
   // logic
-  /*
-  val lt01 = RegNext(data(0) < data(1))
-  val lt02 = RegNext(data(0) < data(2))
-  val lt12 = RegNext(data(1) < data(2))
-  */
   val lt01 = data(0) < data(1)
   val lt02 = data(0) < data(2)
   val lt12 = data(1) < data(2)
@@ -56,15 +48,14 @@ class TwoMins3(
   }
 }
 
-class TwoMins6(params: BeliefQParams, relayparams: RelayParams) extends Component {
+class TwoMins6(params: RelayParams) extends Component {
   import params._
-  import relayparams._
   // IO
   val data = in port Vec.fill(6)(unsigned_msg_t())
   val min1, min2 = out port unsigned_msg_t()
   val id_min1, id_min2 = out port UInt(3 bits)
   // logic
-  val left, right = new TwoMins3(params, relayparams)
+  val left, right = new TwoMins3(params)
   for(i <- 0 until 3) {
     left.ids(i) := i
     right.ids(i) := i + 3
@@ -103,14 +94,11 @@ class TwoMins6(params: BeliefQParams, relayparams: RelayParams) extends Componen
   }
 }
 
-class TwoMins(params: BeliefQParams,
-  relayparams: RelayParams,
-  deg: Int) extends Component {
+class TwoMins(params: RelayParams, deg: Int) extends Component {
   require(deg <= 6)
   import params._
-  import relayparams._
   val data = in port Vec.fill(deg)(unsigned_msg_t())
-  val min6 = new TwoMins6(params, relayparams)
+  val min6 = new TwoMins6(params)
   val min1, min2 = out port unsigned_msg_t()
   val id_min1, id_min2 = out port UInt(3 bits)
   for(i <- 0 until deg) {
