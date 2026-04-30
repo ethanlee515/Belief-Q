@@ -4,25 +4,24 @@ package relay
 import spinal.core._
 import spinal.lib._
 
-class SumOfMessages(
-    params: RelayParams,
+class SumTree[T <: AFix](
+    dataType: HardType[T],
     n: Int) extends Component {
-  import params._
-  val messages = in port Vec.fill(n)(message_t())
-  val result = out port message_t()
+  val inputs = in port Vec.fill(n)(dataType())
+  val result = out port dataType()
   var delays = 1
   val sz = (n + 1) / 2
-  var terms = Reg(Vec.fill(sz)(message_t()))
+  var terms = Reg(Vec.fill(sz)(dataType()))
   for(j <- 0 until sz) {
-    if(2 * j + 1 != messages.size) {
-      terms(j) := (messages(2 * j) + messages(2 * j + 1)).truncated
+    if(2 * j + 1 != inputs.size) {
+      terms(j) := (inputs(2 * j) + inputs(2 * j + 1)).truncated
     } else {
-      terms(j) := messages(2 * j)
+      terms(j) := inputs(2 * j)
     }
   }
   while(terms.size != 1) {
     val new_sz = (terms.size + 1) / 2
-    var next_terms = Reg(Vec.fill(new_sz)(message_t()))
+    var next_terms = Reg(Vec.fill(new_sz)(dataType()))
     for(j <- 0 until new_sz) {
       if(2 * j + 1 != terms.size) {
         next_terms(j) := (terms(2 * j) + terms(2 * j + 1)).truncated

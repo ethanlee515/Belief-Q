@@ -4,38 +4,6 @@ package relay
 import spinal.core._
 import spinal.lib._
 
-class QualitySum(
-    params: BeliefQParams,
-    n: Int) extends Component {
-  import params._
-  val terms_in = in port Vec.fill(n)(quality_t())
-  val result = out port quality_t()
-  var delays = 1
-  val sz = (n + 1) / 2
-  var terms = Reg(Vec.fill(sz)(quality_t()))
-  for(j <- 0 until sz) {
-    if(2 * j + 1 != terms_in.size) {
-      terms(j) := (terms_in(2 * j) + terms_in(2 * j + 1)).truncated
-    } else {
-      terms(j) := terms_in(2 * j)
-    }
-  }
-  while(terms.size != 1) {
-    val new_sz = (terms.size + 1) / 2
-    var next_terms = Reg(Vec.fill(new_sz)(quality_t()))
-    for(j <- 0 until new_sz) {
-      if(2 * j + 1 != terms.size) {
-        next_terms(j) := (terms(2 * j) + terms(2 * j + 1)).truncated
-      } else {
-        next_terms(j) := terms(2 * j)
-      }
-    }
-    terms = next_terms
-    delays += 1
-  }
-  result := terms(0)
-}
-
 class QualityEval[V](
     params: BeliefQParams,
     var_labels: Set[V]) extends Component {
@@ -70,7 +38,7 @@ class QualityEval[V](
   val len = vars_seq.length
   val counter = Reg(UInt(8 bits)) init(0)
   val filtered_priors = Vec.fill(len)(Reg(quality_t()))
-  val quality_sum = new QualitySum(params, len)
+  val quality_sum = new SumTree(quality_t, len)
   /* -- logic -- */
   when(rst) {
     best_decoding_quality := quality_t().maxValue
@@ -85,7 +53,7 @@ class QualityEval[V](
       filtered_priors(i) := BigDecimal(0)
     }
   }
-  quality_sum.terms_in := filtered_priors
+  quality_sum.inputs := filtered_priors
   when(corrections_in_valid) {
     counter := 1
     for(v <- var_labels) {

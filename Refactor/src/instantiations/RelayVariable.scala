@@ -60,12 +60,12 @@ class RelayVariable(
       bias := (biasL + biasR).truncated
     }
   }
-  val sumMessages = new SumOfMessages(relayparams, deg + 1)
+  val sumMessages = new SumTree(message_t, deg + 1)
   override val vToCDelays = biasDelays + sumMessages.delays
   for(i <- 0 until deg) {
-    sumMessages.messages(i) := fromC(i)
+    sumMessages.inputs(i) := fromC(i)
   }
-  sumMessages.messages(deg) := bias
+  sumMessages.inputs(deg) := bias
   val start = Delay(state === State.start_computing_vToC, biasDelays, init=False)
   val valid = Delay(start, sumMessages.delays, init=False)
   when(valid) {
