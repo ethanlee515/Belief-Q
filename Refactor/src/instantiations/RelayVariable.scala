@@ -17,8 +17,8 @@ class RelayVariable(
   override val prior_in = in port message_t()
   override val state = in port State()
   override val decision = out port Reg(Bool())
-  override val bias_delays = 1
   /* -- logic -- */
+  val biasDelays = 1
   val fromC = Vec.fill(deg)(message_t())
   val toC = Vec.fill(deg)(Flow(message_t))
   for(i <- 0 until deg) {
@@ -53,7 +53,7 @@ class RelayVariable(
   }
   biasL := (gamma_compl * prior).truncated
   biasR := (gamma * llr).truncated
-  when(state === State.computing_bias) {
+  when(state === State.start_computing_vToC) {
     when(iter0) {
       bias := prior
     } otherwise {
@@ -61,13 +61,13 @@ class RelayVariable(
     }
   }
   val sumMessages = new SumOfMessages(relayparams, deg + 1)
-  override val sumMessageDelays = sumMessages.delays
+  override val vToCDelays = biasDelays + sumMessages.delays
   for(i <- 0 until deg) {
     sumMessages.messages(i) := fromC(i)
   }
   sumMessages.messages(deg) := bias
-  val start = (state === State.start_summing_messages)
-  val valid = Delay(start, sumMessageDelays, init=False)
+  val start = Delay(state === State.start_computing_vToC, biasDelays, init=False)
+  val valid = Delay(start, sumMessages.delays, init=False)
   when(valid) {
     llr := sumMessages.result
   }

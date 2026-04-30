@@ -10,6 +10,5 @@ abstract class Variable extends Component {
   val prior_in : AFix
   val state : Data
   val decision : Bool
-  val sumMessageDelays : Int
-  val bias_delays : Int
+  val vToCDelays : Int
 }

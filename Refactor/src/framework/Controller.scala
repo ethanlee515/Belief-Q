@@ -33,23 +33,12 @@ class Controller[V, C](params: BeliefQParams,
       // TODO optimize this "extra cycle" away
       state := State.rerandomize_weights
     }
-    is(State.start_computing_bias) {
-      state := State.computing_bias
+    is(State.start_computing_vToC) {
+      state := State.computing_vToC
       counter := 1
     }
-    is(State.computing_bias) {
-      when(counter === graph.bias_delays) {
-        state := State.start_summing_messages
-      } otherwise {
-        counter := counter + 1
-      }
-    }
-    is(State.start_summing_messages) {
-      state := State.summing_messages
-      counter := 1
-    }
-    is(State.summing_messages) {
-      when(counter === graph.sumMessageDelays) {
+    is(State.computing_vToC) {
+      when(counter === graph.vToCDelays) {
         state := State.variables_decide
       } otherwise {
         counter := counter + 1
@@ -86,7 +75,7 @@ class Controller[V, C](params: BeliefQParams,
     }
     is(State.computing_cToV) {
       when(counter === graph.cToVDelays) {
-        state := State.start_computing_bias
+        state := State.start_computing_vToC
       } otherwise {
         counter := counter + 1
       }
