@@ -12,5 +12,5 @@ class VanillaBP[V, F](
     chk_labels,
     edges,
     (params, _, deg, _) => new VanillaVariable(params, deg),
-    (params, deg) => new RelayCheck(params, deg)
+    (params, deg) => new MinSumCheck(params, deg)
   )

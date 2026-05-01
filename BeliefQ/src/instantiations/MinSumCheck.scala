@@ -4,7 +4,7 @@ package relay
 import spinal.core._
 import spinal.lib._
 
-class RelayCheck(
+class MinSumCheck(
   params: BeliefQParams,
   deg: Int) extends Check {
   val relayparams : RelayParams = params.asInstanceOf[RelayParams]
