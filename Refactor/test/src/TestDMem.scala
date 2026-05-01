@@ -26,6 +26,63 @@ object TestDMem extends TestSuite {
       }.toMap
     }
 
+    test("DMemBP matches reference") {
+      val correct_results = syndromes_batch.map { syndromes =>
+        val bp = new reference.DMemBP(
+          var_labels,
+          chk_labels,
+          SimData.edges,
+          syndromes,
+          SimData.gammas,
+          log_priors)
+        bp.doBP(100)
+      }
+      val params = new RelayParams() {
+        override val max_sols = 1
+      }
+      SimConfig.compile {
+        new DMemBP(params, var_labels, chk_labels, SimData.edges, SimData.gammas)
+      }.doSim { dut =>
+        dut.inputs.valid #= false
+        val cd = dut.clockDomain
+        cd.forkStimulus(10)
+        cd.assertReset()
+        sleep(100)
+        cd.deassertReset()
+        sleep(100)
+        for(v <- var_labels) {
+          dut.inputs.initial_priors(v) #= log_priors(v)
+        }
+        for(i <- 0 until num_tests) {
+          val syndromes = syndromes_batch(i)
+          val correct_result = correct_results(i)
+          correct_result match {
+            case Some(res) => {
+              val is_ready = !(cd.waitSamplingWhere(500) {
+                dut.inputs.ready.toBoolean
+              })
+              assert(is_ready)
+              dut.inputs.valid #= true
+              for(c <- chk_labels) {
+                dut.inputs.syndromes(c) #= syndromes(c)
+              }
+              cd.waitSampling()
+              dut.inputs.valid #= false
+              val done = !(cd.waitSamplingWhere(30000) {
+                dut.outputs.valid.toBoolean || dut.failed.toBoolean
+              })
+              assert(done)
+              assert(dut.outputs.valid.toBoolean)
+              for(v <- var_labels) {
+                assert(dut.outputs.corrections(v).toBoolean == res(v))
+              }
+            }
+            case None => { }
+          }
+        }
+      }
+    }
+
     test("DMemBP converges") {
       val params = new RelayParams()
       val converged = syndromes_batch.map { syndromes =>
