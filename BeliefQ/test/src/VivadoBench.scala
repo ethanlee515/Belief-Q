@@ -2,7 +2,6 @@ package beliefq
 package test
 
 import beliefq.vanilla._
-import beliefq.dmem._
 import spinal.core._
 import spinal.lib._
 import spinal.lib.eda.bench.{Report, Rtl}
@@ -34,16 +33,6 @@ object VivadoBench extends App {
   val chk_labels = (0 until SimData.num_checks).toSet
   val rtl = Rtl(
     SpinalVerilog(new VanillaBP(params, var_labels, chk_labels, SimData.edges))
-  )
-  Bench(List(rtl), XilinxRfsocTarget(500 MHz), "./build/")
-}
-
-object VivadoBenchDmem extends App {
-  val params = new BeliefQParams()
-  val var_labels = (0 until SimData.num_vars).toSet
-  val chk_labels = (0 until SimData.num_checks).toSet
-  val rtl = Rtl(
-    SpinalVerilog(new DMemBP(params, var_labels, chk_labels, SimData.edges, SimData.gammas))
   )
   Bench(List(rtl), XilinxRfsocTarget(500 MHz), "./build/")
 }

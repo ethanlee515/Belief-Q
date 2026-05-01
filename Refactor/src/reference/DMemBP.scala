@@ -19,8 +19,8 @@ class DMemBP[V, F](
 
   var vToCs = {
     for(e <- edges) yield {
-      val (v, c) = e
-      (v, c) -> log_priors(v)
+      val (v, _) = e
+      e -> log_priors(v)
     }
   }.to(mutable.Map)
 
@@ -35,7 +35,7 @@ class DMemBP[V, F](
   }.to(mutable.Map)
 
   def doBP(max_iters: Int) : Option[Map[V, Boolean]] = {
-    for(i <- 0 until max_iters) {
+    for(_ <- 0 until max_iters) {
       step()
       if(isDone()) {
         return Some(decisions.toMap)
@@ -87,8 +87,7 @@ class DMemBP[V, F](
     for(c <- chk_labels) {
       val neighbors = geo.get_neighboring_variables(c).toSeq
       val incoming_messages = for(v <- neighbors) yield vToCs((v, c))
-      val syndrome = syndromes(c)
-      val outgoing_messages = CToV.compute(syndrome, incoming_messages)
+      val outgoing_messages = CToV.compute(syndromes(c), incoming_messages)
       for(i <- 0 until neighbors.length) {
         val v = neighbors(i)
         cToVs((v, c)) = outgoing_messages(i)
@@ -104,7 +103,7 @@ class DMemBP[V, F](
         (1 - gammas(v)) * log_priors(v) + gammas(v) * llr(v)
       }
       val neighbors = geo.get_neighboring_checks(v).toSeq
-      val messages : Seq[BigDecimal] = {
+      val messages = {
         for(c <- neighbors) yield {
           cToVs((v, c))
         }

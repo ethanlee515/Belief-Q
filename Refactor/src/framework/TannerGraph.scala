@@ -12,7 +12,7 @@ class TannerGraph[V, C](
     var_labels: Set[V],
     chk_labels: Set[C],
     edge_labels: Set[(V, C)],
-    make_var: (BeliefQParams, Int, BigInt) => Variable,
+    make_var: (BeliefQParams, V, Int, BigInt) => Variable,
     make_chk: (BeliefQParams, Int) => Check) extends Component {
   val random = new Random()
   import params._
@@ -48,7 +48,7 @@ class TannerGraph[V, C](
   val variables = {
     for(v <- var_labels) yield {
       val seed = BigInt(64, random)
-      val variable = make_var(params, deg_var(v), seed)
+      val variable = make_var(params, v, deg_var(v), seed)
       variable.state := state
       variable.prior_in := priors_in(v)
       variable.iter0 := iter0

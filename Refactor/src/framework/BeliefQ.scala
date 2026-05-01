@@ -9,7 +9,7 @@ class BeliefQ[V, F](
     var_labels: Set[V],
     chk_labels: Set[F],
     edges: Set[(V, F)],
-    make_var: (BeliefQParams, Int, BigInt) => Variable,
+    make_var: (BeliefQParams, V, Int, BigInt) => Variable,
     make_chk: (BeliefQParams, Int) => Check,
   ) extends Component {
   /* -- IO -- */
@@ -35,10 +35,13 @@ class BeliefQ[V, F](
 
   val idle = controller.state === State.idle
   val output_ready = quality_eval.corrections_out_valid
+  val waiting_for_quality = Reg(Bool()) init(False)
+  val has_output = Reg(Bool()) init(False)
   inputs.ready := idle && output_ready
   failed := (controller.state === State.failed)
 
   when(inputs.fire) {
+    has_output := False
     for(v <- var_labels) {
       cached_initial_priors(v) := inputs.payload.initial_priors(v)
     }
@@ -67,7 +70,15 @@ class BeliefQ[V, F](
     quality_eval.corrections_in(v) := graph.corrections(v)
   }
 
-  outputs.valid := idle && output_ready
+  when(controller.state === State.result_valid) {
+    waiting_for_quality := True
+  }
+  when(waiting_for_quality && idle && output_ready) {
+    has_output := True
+    waiting_for_quality := False
+  }
+
+  outputs.valid := has_output && idle && output_ready
   for(v <- var_labels) {
     outputs.corrections(v) := quality_eval.corrections_out(v)
   }
