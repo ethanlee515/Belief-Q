@@ -1,18 +1,40 @@
 package beliefq
 package test
 
+import scala.util.Random
 import reference._
-import utest._
-import utest.assert
 import spinal.core._
 import spinal.core.sim._
 import spinal.lib._
+import utest._
+import utest.assert
+import beliefq.relay._
 
 object TestCToV extends TestSuite {
-  import Sampler._
+  val random = new Random(0)
+
+  def random_message() : BigDecimal = {
+    val n = random.nextInt(10)
+    val frac = random.nextInt(16)
+    n + frac / BigDecimal(16)
+  }
+
+  def random_boolean() : Boolean = {
+    random.nextBoolean()
+  }
+
+  def message_bits(params: RelayParams, message: BigDecimal) : BigInt = {
+    val scale = BigDecimal(BigInt(1) << params.message_fractional_precision)
+    val scaled = (message * scale).toBigInt
+    if(scaled < 0) {
+      (BigInt(1) << params.var_msg_len) + scaled
+    } else {
+      scaled
+    }
+  }
 
   def tests = Tests {
-    val params = new BeliefQParams(8, 8)
+    val params = new RelayParams()
 
     test("CToVRef") {
       val inputs = List(
@@ -22,8 +44,7 @@ object TestCToV extends TestSuite {
         BigDecimal("-4.4"),
         BigDecimal("0.55"),
         BigDecimal("-6.6"))
-      val results = reference.CToV.compute(true, inputs)
-//      println(f"VToC results = $results")
+      reference.CToV.compute(true, inputs)
     }
 
     test("TwoMins3") {
@@ -109,13 +130,13 @@ object TestCToV extends TestSuite {
         sleep(100)
         cd.deassertReset()
         sleep(100)
-        for(shots <- 0 until 10) {
-          val messages = List.fill(5)(random_message)
+        for(_ <- 0 until 10) {
+          val messages = List.fill(5)(random_message())
           val syndrome = random_boolean()
           val results = reference.CToV.compute(syndrome, messages)
           dut.inputs.valid #= true
           for(i <- 0 until 5) {
-            dut.inputs.payload.messages(i) #= messages(i)
+            dut.inputs.payload.raw_messages(i) #= message_bits(params, messages(i))
           }
           dut.inputs.payload.syndrome #= syndrome
           cd.waitSampling()
