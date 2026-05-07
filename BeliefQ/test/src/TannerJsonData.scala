@@ -27,5 +27,5 @@ object TannerJsonData {
 
 object StimTannerData {
   val bb144 = TannerJsonData.fromFile("./test-data/bb144_chkmat.json")
-  val colorCode = TannerJsonData.fromFile("./test-data/color_code_chkmat.json")
+  //val colorCode = TannerJsonData.fromFile("./test-data/color_code_chkmat.json")
 }

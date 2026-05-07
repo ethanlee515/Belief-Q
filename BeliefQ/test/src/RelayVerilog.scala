@@ -31,8 +31,10 @@ object Bb144RelayVerilog extends App {
   SpinalVerilog(new Relay(params, data.var_labels, data.chk_labels, data.edges))
 }
 
+/*
 object ColorCodeRelayVerilog extends App {
   val params = new RelayParams()
   val data = StimTannerData.colorCode
   SpinalVerilog(new Relay(params, data.var_labels, data.chk_labels, data.edges))
 }
+*/
