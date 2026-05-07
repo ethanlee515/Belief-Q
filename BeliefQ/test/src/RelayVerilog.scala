@@ -24,3 +24,15 @@ object DMemVerilog extends App {
   val chk_labels = (0 until SimData.num_checks).toSet
   SpinalVerilog(new DMemBP(params, var_labels, chk_labels, SimData.edges, SimData.gammas))
 }
+
+object Bb144RelayVerilog extends App {
+  val params = new RelayParams()
+  val data = StimTannerData.bb144
+  SpinalVerilog(new Relay(params, data.var_labels, data.chk_labels, data.edges))
+}
+
+object ColorCodeRelayVerilog extends App {
+  val params = new RelayParams()
+  val data = StimTannerData.colorCode
+  SpinalVerilog(new Relay(params, data.var_labels, data.chk_labels, data.edges))
+}
