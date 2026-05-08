@@ -17,22 +17,30 @@ class VanillaBP[V, F](
   val geo = new TannerGraphGeometry(var_labels, chk_labels, edges)
   var state = State.computeCToV
 
-  var vToCs = {
-    for(e <- edges) yield {
+  var vToCs: mutable.Map[(V, F), BigDecimal] = {
+    val m = mutable.Map.empty[(V, F), BigDecimal]
+    for(e <- edges) {
       val (v, c) = e
-      (v, c) -> log_priors(v)
+      m((v, c)) = log_priors(v)
     }
-  }.to(mutable.Map)
+    m
+  }
 
-  var cToVs = {
-    for(e <- edges) yield {
-      e -> BigDecimal(0)
+  var cToVs: mutable.Map[(V, F), BigDecimal] = {
+    val m = mutable.Map.empty[(V, F), BigDecimal]
+    for(e <- edges) {
+      m(e) = BigDecimal(0)
     }
-  }.to(mutable.Map)
+    m
+  }
 
-  val decisions = {
-    for(v <- geo.var_labels) yield { v -> false }
-  }.to(mutable.Map)
+  val decisions: mutable.Map[V, Boolean] = {
+    val m = mutable.Map.empty[V, Boolean]
+    for(v <- geo.var_labels) {
+      m(v) = false
+    }
+    m
+  }
 
   def doBP(max_iters: Int) : Option[Map[V, Boolean]] = {
     for(i <- 0 until max_iters) {

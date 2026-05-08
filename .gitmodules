@@ -1,0 +1,4 @@
+[submodule "ext/SpinalHDL"]
+	path = ext/SpinalHDL
+	url = https://github.com/junyiliu1994/SpinalHDL.git
+	branch = opt-verilog-gen
