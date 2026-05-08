@@ -7,7 +7,8 @@ import spinal.lib._
 
 class RelayVariable(
     params: BeliefQParams,
-    deg: Int, seed: BigInt) extends Variable {
+    deg: Int) extends Variable {
+  val seed = in port Bits(64 bits)
   val relayparams : RelayParams = params.asInstanceOf[RelayParams]
   import relayparams._
   /* -- IO -- */
@@ -33,7 +34,8 @@ class RelayVariable(
   val bias = Reg(message_t())
   val gamma = Reg(gamma_t())
   val gamma_compl = Reg(gamma_t())
-  val rng = Lfsr64(relayparams, seed)
+  val rng = Lfsr64(relayparams)
+  rng.seed := seed
   val five = message_t()
   five := BigDecimal("5")
   val rng_normed = Reg(message_t())

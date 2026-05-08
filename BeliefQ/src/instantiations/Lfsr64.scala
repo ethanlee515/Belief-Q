@@ -5,8 +5,8 @@ import spinal.core._
 import spinal.lib._
 
 case class Lfsr64(
-    params: RelayParams,
-    seed: BigInt) extends Component {
+    params: RelayParams) extends Component {
+  val seed = in port Bits(64 bits)
   import params._
   val lfsr = Reg(Bits(64 bits)) init seed
   val feedback = lfsr(63) ^ lfsr(62) ^ lfsr(60) ^ lfsr(59)

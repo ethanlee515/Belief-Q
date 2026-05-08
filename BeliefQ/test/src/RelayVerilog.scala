@@ -28,7 +28,13 @@ object DMemVerilog extends App {
 object Bb144RelayVerilog extends App {
   val params = new RelayParams()
   val data = StimTannerData.bb144
-  SpinalVerilog(new Relay(params, data.var_labels, data.chk_labels, data.edges))
+  SpinalConfig(
+    mode = Verilog,
+    targetDirectory = "./gen",
+    oneFilePerComponent = false
+  ).generate(
+    new Relay(params, data.var_labels, data.chk_labels, data.edges)
+    )
 }
 
 /*
