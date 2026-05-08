@@ -48,7 +48,7 @@ object TestCToV extends TestSuite {
     }
 
     test("TwoMins3") {
-      SimConfig.compile { new TwoMins3(params) }.doSim { dut =>
+      SimConfig.compile { new TwoMins3(params, 3) }.doSim { dut =>
         val cd = dut.clockDomain
         cd.forkStimulus(10)
         cd.assertReset()
@@ -71,8 +71,8 @@ object TestCToV extends TestSuite {
       }
     }
 
-    test("TwoMins6") {
-      SimConfig.compile { new TwoMins6(params) }.doSim { dut =>
+    test("TwoMins") {
+      SimConfig.compile { new TwoMins(params, 35) }.doSim { dut =>
         val cd = dut.clockDomain
         cd.forkStimulus(10)
         cd.assertReset()
@@ -80,73 +80,22 @@ object TestCToV extends TestSuite {
         cd.deassertReset()
         sleep(100)
         cd.waitSampling()
-        dut.data(0) #= 11
-        dut.data(1) #= 8
-        dut.data(2) #= 4
-        dut.data(3) #= 2
-        dut.data(4) #= 9
-        dut.data(5) #= 5
-        cd.waitSampling()
-        cd.waitSampling()
-        cd.waitSampling()
-        cd.waitSampling()
-        assert(dut.min1.toBigDecimal == 2)
-        assert(dut.id_min1.toInt == 3)
-        assert(dut.min2.toBigDecimal == 4)
-        assert(dut.id_min2.toInt == 2)
-      }
-    }
-
-    test("TwoMins9") {
-      SimConfig.compile { new TwoMins9(params) }.doSim { dut =>
-        val cd = dut.clockDomain
-        cd.forkStimulus(10)
-        cd.assertReset()
-        sleep(100)
-        cd.deassertReset()
-        sleep(100)
-        cd.waitSampling()
-        val inputs = Seq(11, 8, 4, 2, 9, 5, 7, 1, 6)
-        for(i <- 0 until 9) {
+        val inputs = Seq.tabulate(35)(i => 100 + i)
+          .updated(17, 3)
+          .updated(34, 5)
+        for(i <- inputs.indices) {
           dut.data(i) #= inputs(i)
         }
-        cd.waitSampling()
-        cd.waitSampling()
-        cd.waitSampling()
-        cd.waitSampling()
-        assert(dut.min1.toBigDecimal == 1)
-        assert(dut.id_min1.toInt == 7)
-        assert(dut.min2.toBigDecimal == 2)
-        assert(dut.id_min2.toInt == 3)
-      }
-    }
-
-    test("TwoMins") {
-      SimConfig.compile { new TwoMins(params, 4) }.doSim { dut =>
-        val cd = dut.clockDomain
-        cd.forkStimulus(10)
-        cd.assertReset()
-        sleep(100)
-        cd.deassertReset()
-        sleep(100)
-        cd.waitSampling()
-        dut.data(0) #= 11
-        dut.data(1) #= 3
-        dut.data(2) #= 5
-        dut.data(3) #= 12
-        cd.waitSampling()
-        cd.waitSampling()
-        cd.waitSampling()
-        cd.waitSampling()
+        cd.waitSampling(dut.delays + 1)
         assert(dut.min1.toBigDecimal == 3)
-        assert(dut.id_min1.toInt == 1)
+        assert(dut.id_min1.toInt == 17)
         assert(dut.min2.toBigDecimal == 5)
-        assert(dut.id_min2.toInt == 2)
+        assert(dut.id_min2.toInt == 34)
       }
     }
 
     test("CToV hardware vs golden reference") {
-      SimConfig.compile { new CToV(params, 9) }.doSim { dut =>
+      SimConfig.compile { new CToV(params, 35) }.doSim { dut =>
         dut.inputs.valid #= false
         val cd = dut.clockDomain
         cd.forkStimulus(10)
@@ -154,12 +103,13 @@ object TestCToV extends TestSuite {
         sleep(100)
         cd.deassertReset()
         sleep(100)
+        assert(dut.delays == TwoMins.delaysFor(35) + 4)
         for(_ <- 0 until 10) {
-          val messages = List.fill(9)(random_message())
+          val messages = List.fill(35)(random_message())
           val syndrome = random_boolean()
           val results = reference.CToV.compute(syndrome, messages)
           dut.inputs.valid #= true
-          for(i <- 0 until 9) {
+          for(i <- 0 until 35) {
             dut.inputs.payload.raw_messages(i) #= message_bits(params, messages(i))
           }
           dut.inputs.payload.syndrome #= syndrome
@@ -167,7 +117,7 @@ object TestCToV extends TestSuite {
           dut.inputs.valid #= false
           cd.waitSampling(dut.delays)
           assert(dut.output.valid.toBoolean)
-          for(i <- 0 until 9) {
+          for(i <- 0 until 35) {
             val xi = dut.output.payload(i).toBigDecimal
             assert(xi == results(i))
           }

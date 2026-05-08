@@ -53,7 +53,7 @@ class CToV(
       a1.sign_parity ^ a1.is_negatives.asBits.xorR)
   }
   val twoMinsStageExtra1 = Node()
-  val twoMinsStageExtra2 = Node()
+  val twoMinsExtraStages = Seq.fill(a2.twomins.delays - 1)(Node())
   val twoMinsStage2 = Node()
   val a3 = new twoMinsStage2.Area {
     val min1 = insert(a2.twomins.min1) 
@@ -88,15 +88,13 @@ class CToV(
     output.valid := isValid
   }
   parsingStage.valid := inputs.valid
-  val pipeline = Builder(List(
-    StageLink(parsingStage, twoMinsStage1),
-    StageLink(twoMinsStage1, twoMinsStageExtra1),
-    /*
-    StageLink(twoMinsStageExtra1, twoMinsStageExtra2),
-    StageLink(twoMinsStageExtra2, twoMinsStage2),
-    */
-    StageLink(twoMinsStageExtra1, twoMinsStage2),
-    StageLink(twoMinsStage2, rsSelectionStage),
-    StageLink(rsSelectionStage, outputStage)))
-  val delays = 5
+  val twoMinsStages = Seq(twoMinsStage1, twoMinsStageExtra1) ++ twoMinsExtraStages :+ twoMinsStage2
+  val pipelineLinks =
+    Seq(StageLink(parsingStage, twoMinsStage1)) ++
+    twoMinsStages.sliding(2).map { case Seq(from, to) => StageLink(from, to) } ++
+    Seq(
+      StageLink(twoMinsStage2, rsSelectionStage),
+      StageLink(rsSelectionStage, outputStage))
+  val pipeline = Builder(pipelineLinks.toList)
+  val delays = a2.twomins.delays + 4
 }
