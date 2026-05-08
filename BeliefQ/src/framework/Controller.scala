@@ -45,6 +45,13 @@ class Controller[V, C](params: BeliefQParams,
       }
     }
     is(State.variables_decide) {
+      if(pipeline_converged) {
+        state := State.waiting_for_converged
+      } else {
+        state := State.checking_decision
+      }
+    }
+    is(State.waiting_for_converged) {
       state := State.checking_decision
     }
     /*

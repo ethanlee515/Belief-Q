@@ -36,7 +36,7 @@ object TestVanilla extends TestSuite {
           log_priors)
         vanillaBP.doBP(300)
       }
-      val params = new RelayParams() {
+      val params = new RelayParams(pipeline_converged=true) {
         override val max_sols = 1
       }
       SimConfig.compile {

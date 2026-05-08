@@ -28,7 +28,7 @@ object TestRelay extends TestSuite {
       }.toMap
     }
     test("Relay converges") {
-      val params = new RelayParams()
+      val params = new RelayParams(pipeline_converged=true)
       val converged = syndromes_batch.map { syndromes =>
         val vanillaBP = new reference.VanillaBP(var_labels, chk_labels, SimData.edges, syndromes, log_priors)
         vanillaBP.doBP(300) != None

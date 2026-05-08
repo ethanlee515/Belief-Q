@@ -101,8 +101,17 @@ class TannerGraph[V, C](
       val check = checks(c)
       check.satisfied
     }
+  }.toSeq
+  if(pipeline_converged) {
+    val check_satisfied_groups = check_satisfied.grouped(64).toSeq.map { group =>
+      val group_satisfied = Reg(Bool()) init(False)
+      group_satisfied := Vec(group).andR
+      group_satisfied
+    }
+    converged := Vec(check_satisfied_groups).andR
+  } else {
+    converged := Vec(check_satisfied).andR
   }
-  converged := Vec(check_satisfied).andR
   for(v <- var_labels) {
     corrections(v) := variables(v).decision
   }

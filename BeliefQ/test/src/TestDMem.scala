@@ -37,7 +37,7 @@ object TestDMem extends TestSuite {
           log_priors)
         bp.doBP(100)
       }
-      val params = new RelayParams() {
+      val params = new RelayParams(pipeline_converged=false) {
         override val max_sols = 1
       }
       SimConfig.compile {
@@ -84,7 +84,7 @@ object TestDMem extends TestSuite {
     }
 
     test("DMemBP converges") {
-      val params = new RelayParams()
+      val params = new RelayParams(pipeline_converged=false)
       val converged = syndromes_batch.map { syndromes =>
         val bp = new reference.DMemBP(
           var_labels,

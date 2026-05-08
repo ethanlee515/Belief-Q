@@ -10,4 +10,5 @@ class BeliefQParams() {
   val max_legs = 5
   val max_sols = 2
   val max_iters = 12
+  val pipeline_converged = false
 }

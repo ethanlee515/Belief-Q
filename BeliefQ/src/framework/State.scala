@@ -10,7 +10,7 @@ object State extends SpinalEnum {
   val idle, loading_inputs,
     start_computing_vToC, computing_vToC,
     variables_decide,
-    checking_decision,
+    waiting_for_converged, checking_decision,
     start_computing_cToV, computing_cToV,
     result_valid, rerandomize_weights,
     failed = newElement()
